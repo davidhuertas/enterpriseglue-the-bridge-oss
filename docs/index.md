@@ -29,6 +29,9 @@ Audience: Developers and architects.
 - [Logical Architecture](architecture/02-oss-logical-architecture.md)
 - [Authorization and Access Control](architecture/09-oss-authorization-access-control-model.md)
 
+## Engine Integration
+- [Operaton REST Endpoints Consumed](reference/operaton-endpoints.md)
+
 ## Database
 - [Database Architecture Overview](reference/database-architecture.md)
 - [Non-Postgres Database Setup](how-to/database-non-postgres.md)
