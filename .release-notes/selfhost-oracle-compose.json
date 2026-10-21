@@ -2,7 +2,7 @@
   "$schema": "./schema.json",
   "schemaVersion": 1,
   "id": "selfhost-oracle-compose",
-  "type": "feat",
+  "type": "feature",
   "scope": "self-host-deployment",
   "breaking": false,
   "audiences": ["operators"],
