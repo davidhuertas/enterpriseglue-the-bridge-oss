@@ -25,6 +25,7 @@ Audience: Developers and architects.
 - [Collect Access-Governance Deployment Evidence](how-to/collect-access-governance-deployment-evidence.md)
 
 ## Configuration
+- [OpenAPI Documents](reference/openapi/README.md)
 - [Configuration Reference](reference/configuration.md)
 - [Configuration Matrix](reference/configuration-matrix.md)
 - [Tenant Workload Lifecycle API](reference/tenant-workload-lifecycle-api.md)
@@ -67,6 +68,8 @@ Audience: Developers and architects.
 - [CI and Release Routing](development/ci-and-release-routing.md)
 - [Mirrored Engine Backstop Developer Guide](developer/mirrored-engine-backstop.md)
 - [Enterprise Backend Plugin Database API](reference/enterprise-backend-plugin-database-api.md)
+- [Frontend to Backend Endpoint Inventory](reference/frontend-backend-endpoints.md)
+- [Mandatory Request Headers per Backend Endpoint](reference/backend-request-headers.md)
 - [Customer Sidecar Backstop Test Report](development/customer-sidecar-backstop-test-report.md)
 - [Identity Protocol, Entra Compatibility, and LDAP Test Harness](how-to/ldap-protocol-test-harness.md)
 - [Extending SCIM Provisioning](development/extending-scim-provisioning.md)

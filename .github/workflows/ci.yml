@@ -405,6 +405,10 @@ jobs:
           cp "$ENV_EXAMPLES_DIR/selfhost.env.example" "$tmp_dir/.env"
           assert_project_network eg-compose-selfhost \
             docker compose --project-name eg-compose-selfhost --project-directory "$tmp_dir" -f "$tmp_dir/docker-compose.selfhost.yml" config
+          cp "$COMPOSE_DIR/docker-compose.selfhost-oracle.yml" "$tmp_dir/docker-compose.selfhost-oracle.yml"
+          cp "$ENV_EXAMPLES_DIR/selfhost-oracle.env.example" "$tmp_dir/.env"
+          assert_project_network eg-compose-selfhost-oracle \
+            docker compose --project-name eg-compose-selfhost-oracle --project-directory "$tmp_dir" -f "$tmp_dir/docker-compose.selfhost-oracle.yml" config
 
       - name: Validate Docker docs command spelling
         shell: bash
@@ -675,6 +679,10 @@ jobs:
       - name: Enforce headless administrator configuration parity
         if: matrix.database == 'postgres' && github.event_name != 'merge_group'
         run: node --test scripts/headless-admin-contract-parity.test.mjs scripts/headless-admin-cli-lifecycle.test.mjs
+
+      - name: Verify published OpenAPI documents are current and valid
+        if: matrix.database == 'postgres' && github.event_name != 'merge_group'
+        run: node scripts/generate-openapi-docs.mjs --check
 
       - name: Run integration tests
         if: matrix.database == 'postgres' && github.event_name != 'merge_group'

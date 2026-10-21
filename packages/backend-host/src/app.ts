@@ -7,6 +7,7 @@ import { doubleCsrf } from 'csrf-csrf';
 import { XSRF_COOKIE_NAME, XSRF_HEADER_NAME } from '@enterpriseglue/shared/utils/xsrf.js';
 import { config, shouldUseSecureCookies } from '@enterpriseglue/shared/config/index.js';
 import { generateOpenApi } from '@enterpriseglue/shared/schemas/openapi.js';
+import { buildPublishedOpenApi, getOpenApiDocumentDefinition, OPENAPI_DOCUMENTS } from '@enterpriseglue/shared/schemas/openapi-publish.js';
 import { errorHandler } from '@enterpriseglue/shared/middleware/errorHandler.js';
 import { apiLimiter } from '@enterpriseglue/shared/middleware/rateLimiter.js';
 import { logger } from '@enterpriseglue/shared/utils/logger.js';
@@ -53,6 +54,33 @@ export function registerBaseRoutes(
   registerRoutes(app, options);
 }
 
+/**
+ * Serves the published OpenAPI documents as JSON (/api/docs/openapi.json for everything, plus one file
+ * per API area such as /api/docs/engines.json) and Swagger UI at /api/docs with a selector for each.
+ */
+function registerApiDocs(app: express.Express): void {
+  const source = generateOpenApi();
+  const documents = new Map<string, unknown>();
+  const getDocument = (id: string) => {
+    if (!documents.has(id)) {
+      documents.set(id, buildPublishedOpenApi(source, id === 'openapi' ? {} : { documentId: id }));
+    }
+    return documents.get(id);
+  };
+
+  app.get('/api/docs/:file', (req, res, next) => {
+    const id = /^(.+)\.json$/.exec(req.params.file)?.[1];
+    if (!id || (id !== 'openapi' && !getOpenApiDocumentDefinition(id))) return next();
+    res.json(getDocument(id));
+  });
+
+  const urls = [
+    { url: '/api/docs/openapi.json', name: 'All APIs' },
+    ...OPENAPI_DOCUMENTS.map((definition) => ({ url: `/api/docs/${definition.id}.json`, name: definition.title })),
+  ];
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(undefined, { explorer: true, swaggerOptions: { urls } }));
+}
+
 export function registerFinalMiddleware(
   app: express.Express,
   options: { includeDocs?: boolean } = {}
@@ -60,7 +88,7 @@ export function registerFinalMiddleware(
   const { includeDocs = true } = options;
 
   if (includeDocs) {
-    app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(generateOpenApi()));
+    registerApiDocs(app);
   }
 
   // Error handling middleware (must be last)

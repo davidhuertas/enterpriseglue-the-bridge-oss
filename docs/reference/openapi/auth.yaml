@@ -1,0 +1,2959 @@
+openapi: 3.0.3
+info:
+  title: EnterpriseGlue Auth & Health API
+  version: 0.1.0
+  description: |-
+    Login, sessions, onboarding, invitations, tenant discovery and the health, readiness and metrics probes.
+
+    Tenant-scoped routes under `/api/t/{tenantSlug}/...` are also served at the legacy alias `/t/{tenantSlug}/api/...`; only the first form is documented.
+servers:
+  - url: /
+    description: This EnterpriseGlue deployment
+tags:
+  - name: Auth & Health
+    description: Login, sessions, onboarding, invitations, tenant discovery and the health, readiness and metrics probes.
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Health check
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+      security: []
+  /ready:
+    get:
+      operationId: getReady
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Service is ready after required startup configuration work
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Readiness"
+        "503":
+          description: Required startup configuration work failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Readiness"
+      security: []
+  /metrics:
+    get:
+      operationId: getMetrics
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Sanitized Prometheus configuration-bootstrap, aggregate engine-tenancy, and bounded login-experience metrics
+          content:
+            text/plain:
+              schema:
+                type: string
+      security: []
+  /api/auth/me/identity-providers:
+    get:
+      operationId: getAuthMeIdentityProviders
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Sanitized tenant and eligible global Cloud OIDC providers for the current user account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  providers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        displayName:
+                          type: string
+                        organization:
+                          type: string
+                          nullable: true
+                        protocol:
+                          type: string
+                          enum:
+                            - oidc
+                        linked:
+                          type: boolean
+                      required:
+                        - id
+                        - displayName
+                        - organization
+                        - protocol
+                        - linked
+                      additionalProperties: false
+                required:
+                  - providers
+                additionalProperties: false
+        "401":
+          description: Not authenticated
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/me/identity-providers/{providerId}/link:
+    get:
+      operationId: getAuthMeIdentityProvidersByProviderIdLink
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: providerId
+          in: path
+        - schema:
+            type: string
+          required: false
+          name: returnTo
+          in: query
+      responses:
+        "302":
+          description: Redirect to the selected tenant or global Cloud OIDC provider for authenticated account linking
+        "401":
+          description: Not authenticated
+        "404":
+          description: Identity provider not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/tenant-discovery:
+    post:
+      operationId: postAuthTenantDiscovery
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  maxLength: 320
+                  format: email
+              required:
+                - email
+      responses:
+        "200":
+          description: One verified tenant route or the common email-verification fallback
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantDiscoveryResponse"
+      security: []
+  /api/auth/tenant-discovery/exchange:
+    post:
+      operationId: postAuthTenantDiscoveryExchange
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  minLength: 32
+                  maxLength: 512
+              required:
+                - token
+      responses:
+        "200":
+          description: Active memberships after consuming a valid single-use email token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tenants:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/NativeTenantMembership"
+                required:
+                  - tenants
+        "400":
+          description: Invalid, expired, or already consumed token
+      security: []
+  /api/auth/my-tenants:
+    get:
+      operationId: getAuthMyTenants
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Active tenant memberships for the authenticated principal
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NativeTenantMembership"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/switch-tenant:
+    post:
+      operationId: postAuthSwitchTenant
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tenantSlug:
+                  type: string
+                  minLength: 1
+                  maxLength: 63
+                  pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+              required:
+                - tenantSlug
+      responses:
+        "200":
+          description: Tenant-bound replacement session issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tenantId:
+                    type: string
+                  tenantSlug:
+                    type: string
+                    minLength: 1
+                    maxLength: 63
+                    pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+                required:
+                  - tenantId
+                  - tenantSlug
+        "403":
+          description: Active target-tenant membership is required
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/documentation/configuration:
+    get:
+      operationId: getAuthDocumentationConfiguration
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Documentation-only account access without tenant provisioning
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documentationOrigin:
+                    type: string
+                    format: uri
+                  accountOrigin:
+                    type: string
+                    format: uri
+                required:
+                  - documentationOrigin
+                  - accountOrigin
+                additionalProperties: false
+        "401":
+          description: Invalid, expired, revoked or reused credential
+        "403":
+          description: Account or browser proof is not eligible
+        "404":
+          description: Documentation integration is disabled
+      security: []
+  /api/auth/documentation/grant:
+    post:
+      operationId: postAuthDocumentationGrant
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state:
+                  type: string
+                  pattern: ^[A-Za-z0-9_-]{43}$
+                challenge:
+                  type: string
+                  pattern: ^[A-Za-z0-9_-]{43}$
+              required:
+                - state
+                - challenge
+              additionalProperties: false
+      responses:
+        "200":
+          description: Documentation-only account access without tenant provisioning
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  callbackUrl:
+                    type: string
+                    format: uri
+                required:
+                  - callbackUrl
+                additionalProperties: false
+        "401":
+          description: Invalid, expired, revoked or reused credential
+        "403":
+          description: Account or browser proof is not eligible
+        "404":
+          description: Documentation integration is disabled
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/documentation/exchange:
+    post:
+      operationId: postAuthDocumentationExchange
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  minLength: 100
+                  maxLength: 4096
+                verifier:
+                  type: string
+                  pattern: ^[A-Za-z0-9_-]{43}$
+              required:
+                - code
+                - verifier
+              additionalProperties: false
+      responses:
+        "200":
+          description: Documentation-only account access without tenant provisioning
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session:
+                    type: string
+                    minLength: 100
+                    maxLength: 4096
+                required:
+                  - session
+                additionalProperties: false
+        "401":
+          description: Invalid, expired, revoked or reused credential
+        "403":
+          description: Account or browser proof is not eligible
+        "404":
+          description: Documentation integration is disabled
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/documentation/session:
+    get:
+      operationId: getAuthDocumentationSession
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Documentation-only account access without tenant provisioning
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                    enum:
+                      - true
+                  permission:
+                    type: string
+                    enum:
+                      - documentation:read
+                required:
+                  - authenticated
+                  - permission
+                additionalProperties: false
+        "401":
+          description: Invalid, expired, revoked or reused credential
+        "403":
+          description: Account or browser proof is not eligible
+        "404":
+          description: Documentation integration is disabled
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/documentation/logout:
+    post:
+      operationId: postAuthDocumentationLogout
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Documentation-only account access without tenant provisioning
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signedOut:
+                    type: boolean
+                    enum:
+                      - true
+                required:
+                  - signedOut
+                additionalProperties: false
+        "401":
+          description: Invalid, expired, revoked or reused credential
+        "403":
+          description: Account or browser proof is not eligible
+        "404":
+          description: Documentation integration is disabled
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/cloud-signup/providers:
+    get:
+      operationId: getAuthCloudSignupProviders
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Sanitized, explicitly enabled Cloud account identity methods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    displayName:
+                      type: string
+                    protocol:
+                      type: string
+                      enum:
+                        - oidc
+                        - saml
+                  required:
+                    - id
+                    - displayName
+                    - protocol
+                  additionalProperties: false
+        "404":
+          description: Cloud account identity is disabled
+      security: []
+  /api/auth/cloud-signup/providers/{providerId}/start:
+    get:
+      operationId: getAuthCloudSignupProvidersByProviderIdStart
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: providerId
+          in: path
+        - schema:
+            type: string
+            enum:
+              - /cloud/onboarding
+              - /login
+              - /documentation/access
+          required: true
+          name: returnTo
+          in: query
+      responses:
+        "302":
+          description: Start a signed provider flow returning to Cloud onboarding, organization login or documentation access
+        "404":
+          description: Cloud account identity or provider unavailable
+      security: []
+  /api/auth/cloud-signup/email/request:
+    post:
+      operationId: postAuthCloudSignupEmailRequest
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  maxLength: 320
+                  format: email
+                intent:
+                  type: string
+                  enum:
+                    - cloud
+                    - documentation
+              required:
+                - email
+              additionalProperties: false
+      responses:
+        "202":
+          description: Generic response; a verification link or existing-account guidance is sent when eligible
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+        "404":
+          description: Managed Cloud account identity is disabled
+        "503":
+          description: Outbound email is unavailable
+      security: []
+  /api/auth/cloud-signup/email/verify:
+    get:
+      operationId: getAuthCloudSignupEmailVerify
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: token
+          in: query
+        - schema:
+            type: string
+            enum:
+              - cloud
+              - documentation
+          required: false
+          name: intent
+          in: query
+      responses:
+        "302":
+          description: Sets short-lived, HttpOnly address-proof cookie and redirects to passkey registration; does not create an account
+        "401":
+          description: Invalid or expired link
+      security: []
+  /api/auth/cloud-signup/email/passkey/options:
+    post:
+      operationId: postAuthCloudSignupEmailPasskeyOptions
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: User-verified, discoverable WebAuthn registration options for the verified email proof
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challenge:
+                    type: string
+                required:
+                  - challenge
+                additionalProperties:
+                  nullable: true
+        "401":
+          description: Missing or expired email proof
+      security: []
+  /api/auth/cloud-signup/email/passkey/complete:
+    post:
+      operationId: postAuthCloudSignupEmailPasskeyComplete
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                rawId:
+                  type: string
+                type:
+                  type: string
+                  enum:
+                    - public-key
+                response:
+                  type: object
+                  additionalProperties:
+                    nullable: true
+                clientExtensionResults:
+                  type: object
+                  additionalProperties:
+                    nullable: true
+              required:
+                - id
+                - rawId
+                - type
+                - response
+                - clientExtensionResults
+              additionalProperties:
+                nullable: true
+      responses:
+        "201":
+          description: Atomically consumes the email proof and creates a tenant-neutral Cloud account with a verified passkey
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                required:
+                  - success
+        "401":
+          description: Invalid, expired, or reused proof or passkey registration
+      security: []
+  /api/auth/cloud-passkey/options:
+    post:
+      operationId: postAuthCloudPasskeyOptions
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Browser-bound, single-use WebAuthn authentication challenge
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challenge:
+                    type: string
+                required:
+                  - challenge
+                additionalProperties:
+                  nullable: true
+        "404":
+          description: Managed Cloud account identity is disabled
+      security: []
+  /api/auth/cloud-passkey/complete:
+    post:
+      operationId: postAuthCloudPasskeyComplete
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                rawId:
+                  type: string
+                type:
+                  type: string
+                  enum:
+                    - public-key
+                response:
+                  type: object
+                  additionalProperties:
+                    nullable: true
+                clientExtensionResults:
+                  type: object
+                  additionalProperties:
+                    nullable: true
+              required:
+                - id
+                - rawId
+                - type
+                - response
+                - clientExtensionResults
+              additionalProperties:
+                nullable: true
+      responses:
+        "200":
+          description: Consumes the challenge and issues a tenant-neutral Cloud account session after verified user-presence and user-verification evidence
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                required:
+                  - success
+        "401":
+          description: Invalid, expired, or reused passkey assertion
+      security: []
+  /api/auth/login:
+    post:
+      operationId: postAuthLogin
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedSessionLoginResponse"
+        "401":
+          description: Invalid credentials
+      security: []
+  /api/auth/recovery/login:
+    post:
+      operationId: postAuthRecoveryLogin
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Canonical platform-administrator recovery login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedSessionLoginResponse"
+        "401":
+          description: Invalid credentials or recovery is unavailable
+      security: []
+  /api/auth/onboarding/login-methods:
+    get:
+      operationId: getAuthOnboardingLoginMethods
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Enrollment methods for the verified invitation tenant; requires the onboarding cookie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  localPassword:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                    required:
+                      - enabled
+                  providerSelection:
+                    type: string
+                    enum:
+                      - auto_redirect_single
+                      - chooser
+                      - progressive
+                    description: Controls how the public login page selects among enabled direct identity providers.
+                  autoRedirectProviderId:
+                    type: string
+                    nullable: true
+                  providers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        key:
+                          type: string
+                          minLength: 1
+                          maxLength: 128
+                        displayName:
+                          type: string
+                          minLength: 1
+                          maxLength: 255
+                        organization:
+                          type: string
+                          nullable: true
+                        protocol:
+                          type: string
+                          enum:
+                            - oidc
+                            - saml
+                            - ldap
+                        loginMethod:
+                          type: string
+                          enum:
+                            - redirect
+                            - password
+                        preferred:
+                          type: boolean
+                        loginDomains:
+                          type: array
+                          items:
+                            type: string
+                            maxLength: 253
+                            pattern: ^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+                      required:
+                        - id
+                        - key
+                        - displayName
+                        - organization
+                        - protocol
+                        - loginMethod
+                        - preferred
+                        - loginDomains
+                  configurationStatus:
+                    type: string
+                    enum:
+                      - ready
+                      - no_login_method
+                required:
+                  - localPassword
+                  - providerSelection
+                  - autoRedirectProviderId
+                  - providers
+                  - configurationStatus
+        "401":
+          description: Missing, stale or invalid onboarding context
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/onboarding/providers/{providerId}/start:
+    get:
+      operationId: getAuthOnboardingProvidersByProviderIdStart
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: providerId
+          in: path
+      responses:
+        "302":
+          description: Start invitation-bound OIDC or SAML enrollment using the onboarding cookie; no account ID or invitation credential is accepted as input
+        "401":
+          description: Missing, stale or invalid onboarding context
+        "404":
+          description: Provider unavailable in the invitation tenant
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/onboarding/providers/{providerId}/login:
+    post:
+      operationId: postAuthOnboardingProvidersByProviderIdLogin
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: providerId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  minLength: 1
+                  maxLength: 320
+                password:
+                  type: string
+                  minLength: 1
+                  maxLength: 4096
+              required:
+                - username
+                - password
+              additionalProperties: false
+      responses:
+        "200":
+          description: LDAP invitation enrollment committed with provider-bound session cookies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedSessionLoginResponse"
+        "401":
+          description: Invalid onboarding or directory credentials
+        "403":
+          description: Enrollment forbidden
+        "404":
+          description: Provider unavailable in the invitation tenant
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/complete-onboarding:
+    post:
+      operationId: postAuthCompleteOnboarding
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                lastName:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                newPassword:
+                  type: string
+                  minLength: 8
+              required:
+                - firstName
+                - lastName
+                - newPassword
+      responses:
+        "200":
+          description: Onboarding completed and session established
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/AuthenticatedSessionUser"
+                  expiresIn:
+                    type: number
+                    minimum: 0
+                    exclusiveMinimum: true
+                  emailVerificationRequired:
+                    type: boolean
+                    enum:
+                      - false
+                required:
+                  - user
+                  - expiresIn
+                  - emailVerificationRequired
+                additionalProperties: false
+        "400":
+          description: Invalid onboarding input or token
+        "401":
+          description: Invalid onboarding token
+        "403":
+          description: The invitation targets an engine or project whose access became SSO-managed
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/logout:
+    post:
+      operationId: postAuthLogout
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+              additionalProperties: false
+      responses:
+        "200":
+          description: Local sessions revoked; optional standards-based provider logout target returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  federatedLogoutUrl:
+                    type: string
+                    nullable: true
+                    format: uri
+                required:
+                  - message
+                  - federatedLogoutUrl
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/invitations/{token}:
+    get:
+      operationId: getInvitationsByToken
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          required: true
+          name: token
+          in: path
+      responses:
+        "200":
+          description: Public invitation status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                  tenantSlug:
+                    type: string
+                  resourceType:
+                    type: string
+                    enum:
+                      - platform_user
+                      - tenant
+                      - project
+                      - engine
+                  resourceName:
+                    type: string
+                    nullable: true
+                  resourceRole:
+                    type: string
+                    nullable: true
+                  resourceRoles:
+                    type: array
+                    items:
+                      type: string
+                  deliveryMethod:
+                    type: string
+                    enum:
+                      - email
+                      - manual
+                  expiresAt:
+                    type: number
+                  status:
+                    type: string
+                    enum:
+                      - pending
+                      - expired
+                      - onboarding
+                required:
+                  - email
+                  - tenantSlug
+                  - resourceType
+                  - resourceName
+                  - resourceRole
+                  - resourceRoles
+                  - deliveryMethod
+                  - expiresAt
+                  - status
+        "404":
+          description: Invitation not found
+      security: []
+  /api/invitations/{token}/verify-otp:
+    post:
+      operationId: postInvitationsByTokenVerifyOtp
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          required: true
+          name: token
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oneTimePassword:
+                  type: string
+                  minLength: 1
+              required:
+                - oneTimePassword
+      responses:
+        "200":
+          description: Manual invitation verified for onboarding
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requiresPasswordSet:
+                    type: boolean
+                  enrollmentMode:
+                    type: string
+                    enum:
+                      - password
+                      - provider
+                      - choice
+                      - unavailable
+                  tenantSlug:
+                    type: string
+                  deliveryMethod:
+                    type: string
+                    enum:
+                      - email
+                      - manual
+                required:
+                  - requiresPasswordSet
+                  - tenantSlug
+                  - deliveryMethod
+        "400":
+          description: Invalid or expired invitation
+      security: []
+  /api/invitations/{token}/redeem:
+    post:
+      operationId: postInvitationsByTokenRedeem
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          required: true
+          name: token
+          in: path
+      responses:
+        "200":
+          description: Email invitation redeemed for onboarding
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requiresPasswordSet:
+                    type: boolean
+                  enrollmentMode:
+                    type: string
+                    enum:
+                      - password
+                      - provider
+                      - choice
+                      - unavailable
+                  tenantSlug:
+                    type: string
+                  deliveryMethod:
+                    type: string
+                    enum:
+                      - email
+                      - manual
+                required:
+                  - requiresPasswordSet
+                  - tenantSlug
+                  - deliveryMethod
+        "400":
+          description: Invalid or expired invitation
+      security: []
+  /api/t/{tenantSlug}/auth/onboarding/login-methods:
+    get:
+      operationId: getTByTenantSlugAuthOnboardingLoginMethods
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 63
+            pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+          required: true
+          name: tenantSlug
+          in: path
+      responses:
+        "200":
+          description: Enrollment methods for the verified invitation tenant; requires the onboarding cookie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  localPassword:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                    required:
+                      - enabled
+                  providerSelection:
+                    type: string
+                    enum:
+                      - auto_redirect_single
+                      - chooser
+                      - progressive
+                    description: Controls how the public login page selects among enabled direct identity providers.
+                  autoRedirectProviderId:
+                    type: string
+                    nullable: true
+                  providers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        key:
+                          type: string
+                          minLength: 1
+                          maxLength: 128
+                        displayName:
+                          type: string
+                          minLength: 1
+                          maxLength: 255
+                        organization:
+                          type: string
+                          nullable: true
+                        protocol:
+                          type: string
+                          enum:
+                            - oidc
+                            - saml
+                            - ldap
+                        loginMethod:
+                          type: string
+                          enum:
+                            - redirect
+                            - password
+                        preferred:
+                          type: boolean
+                        loginDomains:
+                          type: array
+                          items:
+                            type: string
+                            maxLength: 253
+                            pattern: ^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+                      required:
+                        - id
+                        - key
+                        - displayName
+                        - organization
+                        - protocol
+                        - loginMethod
+                        - preferred
+                        - loginDomains
+                  configurationStatus:
+                    type: string
+                    enum:
+                      - ready
+                      - no_login_method
+                required:
+                  - localPassword
+                  - providerSelection
+                  - autoRedirectProviderId
+                  - providers
+                  - configurationStatus
+        "401":
+          description: Missing, stale or invalid onboarding context
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/t/{tenantSlug}/auth/onboarding/providers/{providerId}/start:
+    get:
+      operationId: getTByTenantSlugAuthOnboardingProvidersByProviderIdStart
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 63
+            pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+          required: true
+          name: tenantSlug
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: providerId
+          in: path
+      responses:
+        "302":
+          description: Start invitation-bound OIDC or SAML enrollment using the onboarding cookie; no account ID or invitation credential is accepted as input
+        "401":
+          description: Missing, stale or invalid onboarding context
+        "404":
+          description: Provider unavailable in the invitation tenant
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/t/{tenantSlug}/auth/onboarding/providers/{providerId}/login:
+    post:
+      operationId: postTByTenantSlugAuthOnboardingProvidersByProviderIdLogin
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 63
+            pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+          required: true
+          name: tenantSlug
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: providerId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  minLength: 1
+                  maxLength: 320
+                password:
+                  type: string
+                  minLength: 1
+                  maxLength: 4096
+              required:
+                - username
+                - password
+              additionalProperties: false
+      responses:
+        "200":
+          description: LDAP invitation enrollment committed with provider-bound session cookies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedSessionLoginResponse"
+        "401":
+          description: Invalid onboarding or directory credentials
+        "403":
+          description: Enrollment forbidden
+        "404":
+          description: Provider unavailable in the invitation tenant
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/t/{tenantSlug}/auth/complete-onboarding:
+    post:
+      operationId: postTByTenantSlugAuthCompleteOnboarding
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 63
+            pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+          required: true
+          name: tenantSlug
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                lastName:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                newPassword:
+                  type: string
+                  minLength: 8
+              required:
+                - firstName
+                - lastName
+                - newPassword
+      responses:
+        "200":
+          description: Onboarding completed and session established
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/AuthenticatedSessionUser"
+                  expiresIn:
+                    type: number
+                    minimum: 0
+                    exclusiveMinimum: true
+                  emailVerificationRequired:
+                    type: boolean
+                    enum:
+                      - false
+                required:
+                  - user
+                  - expiresIn
+                  - emailVerificationRequired
+                additionalProperties: false
+        "400":
+          description: Invalid onboarding input or token
+        "401":
+          description: Invalid onboarding token
+        "403":
+          description: The invitation targets an engine or project whose access became SSO-managed
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/t/{tenantSlug}/invitations/{token}:
+    get:
+      operationId: getTByTenantSlugInvitationsByToken
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          required: true
+          name: token
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 63
+            pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+          required: true
+          name: tenantSlug
+          in: path
+      responses:
+        "200":
+          description: Public invitation status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                  tenantSlug:
+                    type: string
+                  resourceType:
+                    type: string
+                    enum:
+                      - platform_user
+                      - tenant
+                      - project
+                      - engine
+                  resourceName:
+                    type: string
+                    nullable: true
+                  resourceRole:
+                    type: string
+                    nullable: true
+                  resourceRoles:
+                    type: array
+                    items:
+                      type: string
+                  deliveryMethod:
+                    type: string
+                    enum:
+                      - email
+                      - manual
+                  expiresAt:
+                    type: number
+                  status:
+                    type: string
+                    enum:
+                      - pending
+                      - expired
+                      - onboarding
+                required:
+                  - email
+                  - tenantSlug
+                  - resourceType
+                  - resourceName
+                  - resourceRole
+                  - resourceRoles
+                  - deliveryMethod
+                  - expiresAt
+                  - status
+        "404":
+          description: Invitation not found
+      security: []
+  /api/t/{tenantSlug}/invitations/{token}/verify-otp:
+    post:
+      operationId: postTByTenantSlugInvitationsByTokenVerifyOtp
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          required: true
+          name: token
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 63
+            pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+          required: true
+          name: tenantSlug
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oneTimePassword:
+                  type: string
+                  minLength: 1
+              required:
+                - oneTimePassword
+      responses:
+        "200":
+          description: Manual invitation verified for onboarding
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requiresPasswordSet:
+                    type: boolean
+                  enrollmentMode:
+                    type: string
+                    enum:
+                      - password
+                      - provider
+                      - choice
+                      - unavailable
+                  tenantSlug:
+                    type: string
+                  deliveryMethod:
+                    type: string
+                    enum:
+                      - email
+                      - manual
+                required:
+                  - requiresPasswordSet
+                  - tenantSlug
+                  - deliveryMethod
+        "400":
+          description: Invalid or expired invitation
+      security: []
+  /api/t/{tenantSlug}/invitations/{token}/redeem:
+    post:
+      operationId: postTByTenantSlugInvitationsByTokenRedeem
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+          required: true
+          name: token
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 63
+            pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+          required: true
+          name: tenantSlug
+          in: path
+      responses:
+        "200":
+          description: Email invitation redeemed for onboarding
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requiresPasswordSet:
+                    type: boolean
+                  enrollmentMode:
+                    type: string
+                    enum:
+                      - password
+                      - provider
+                      - choice
+                      - unavailable
+                  tenantSlug:
+                    type: string
+                  deliveryMethod:
+                    type: string
+                    enum:
+                      - email
+                      - manual
+                required:
+                  - requiresPasswordSet
+                  - tenantSlug
+                  - deliveryMethod
+        "400":
+          description: Invalid or expired invitation
+      security: []
+  /api/auth/refresh:
+    post:
+      operationId: postAuthRefresh
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  expiresIn:
+                    type: number
+                    minimum: 0
+                    exclusiveMinimum: true
+                required:
+                  - expiresIn
+                additionalProperties: false
+        "401":
+          description: Not authenticated
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/me:
+    get:
+      operationId: getAuthMe
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedSessionUser"
+        "401":
+          description: Not authenticated
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    patch:
+      operationId: patchAuthMe
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedSessionUser"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/change-password:
+    post:
+      operationId: postAuthChangePassword
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currentPassword:
+                  type: string
+                newPassword:
+                  type: string
+              required:
+                - currentPassword
+                - newPassword
+      responses:
+        "200":
+          description: Password changed
+        "400":
+          description: Invalid current password
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/forgot-password:
+    post:
+      operationId: postAuthForgotPassword
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              required:
+                - email
+      responses:
+        "200":
+          description: Reset email sent (always returns 200)
+      security: []
+  /api/auth/reset-password:
+    post:
+      operationId: postAuthResetPassword
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+              required:
+                - token
+                - password
+      responses:
+        "200":
+          description: Password reset
+        "400":
+          description: Invalid or expired token
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/reset-password-with-token:
+    post:
+      operationId: postAuthResetPasswordWithToken
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+              required:
+                - token
+                - password
+      responses:
+        "200":
+          description: Password reset with token
+        "400":
+          description: Invalid token
+      security: []
+  /api/auth/verify-reset-token:
+    get:
+      operationId: getAuthVerifyResetToken
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: token
+          in: query
+      responses:
+        "200":
+          description: Token valid
+        "400":
+          description: Invalid or expired token
+      security: []
+  /api/auth/resend-verification:
+    post:
+      operationId: postAuthResendVerification
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              required:
+                - email
+      responses:
+        "200":
+          description: Verification email resent
+      security: []
+  /api/auth/verify-email:
+    get:
+      operationId: getAuthVerifyEmail
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: token
+          in: query
+      responses:
+        "200":
+          description: Email verified
+        "400":
+          description: Invalid token
+      security: []
+  /api/auth/branding:
+    get:
+      operationId: getAuthBranding
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Public non-secret platform branding
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logoUrl:
+                    type: string
+                    nullable: true
+                  loginLogoUrl:
+                    type: string
+                    nullable: true
+                  loginTitleVerticalOffset:
+                    type: number
+                  loginTitleColor:
+                    type: string
+                    nullable: true
+                  logoTitle:
+                    type: string
+                    nullable: true
+                  logoScale:
+                    type: number
+                  titleFontUrl:
+                    type: string
+                    nullable: true
+                  titleFontWeight:
+                    type: string
+                  titleFontSize:
+                    type: number
+                  titleVerticalOffset:
+                    type: number
+                  menuAccentColor:
+                    type: string
+                    nullable: true
+                  faviconUrl:
+                    type: string
+                    nullable: true
+                required:
+                  - logoUrl
+                  - loginLogoUrl
+                  - loginTitleVerticalOffset
+                  - loginTitleColor
+                  - logoTitle
+                  - logoScale
+                  - titleFontUrl
+                  - titleFontWeight
+                  - titleFontSize
+                  - titleVerticalOffset
+                  - menuAccentColor
+                  - faviconUrl
+      security: []
+  /api/auth/platform-settings:
+    get:
+      operationId: getAuthPlatformSettings
+      tags:
+        - Auth & Health
+      summary: Read non-secret settings and effective governance behavior for the authenticated UI
+      description: Returns policy modes plus derived read-only behavior. The behavior describes platform policy only; clients must still enforce the current principal permission snapshot and per-record ownership.
+      responses:
+        "200":
+          description: Public platform settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicPlatformSettings"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/identity/{key}/start:
+    get:
+      operationId: getAuthIdentityByKeyStart
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: key
+          in: path
+      responses:
+        "302":
+          description: Redirect to the selected OIDC identity provider
+      security: []
+  /api/auth/identity/callback:
+    get:
+      operationId: getAuthIdentityCallback
+      tags:
+        - Auth & Health
+      responses:
+        "302":
+          description: Provider-neutral OIDC callback redirect
+      security: []
+  /api/auth/identity/{key}/ldap/login:
+    post:
+      operationId: postAuthIdentityByKeyLdapLogin
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: key
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        "200":
+          description: LDAP identity login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedSessionLoginResponse"
+        "401":
+          description: Invalid directory credentials
+      security: []
+  /api/auth/providers/enabled:
+    get:
+      operationId: getAuthProvidersEnabled
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Compatibility response for enabled provider-neutral direct-login options. New clients use /api/auth/login-methods.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    key:
+                      type: string
+                    displayName:
+                      type: string
+                    organization:
+                      type: string
+                      nullable: true
+                    protocol:
+                      type: string
+                      enum:
+                        - oidc
+                        - saml
+                        - ldap
+                    loginMethod:
+                      type: string
+                      enum:
+                        - redirect
+                        - password
+                  required:
+                    - id
+                    - key
+                    - displayName
+                    - organization
+                    - protocol
+                    - loginMethod
+      security: []
+  /api/auth/login-methods:
+    get:
+      operationId: getAuthLoginMethods
+      tags:
+        - Auth & Health
+      responses:
+        "200":
+          description: Policy-resolved login methods safe to show before authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  localPassword:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                    required:
+                      - enabled
+                  providerSelection:
+                    type: string
+                    enum:
+                      - auto_redirect_single
+                      - chooser
+                      - progressive
+                    description: Controls how the public login page selects among enabled direct identity providers.
+                  autoRedirectProviderId:
+                    type: string
+                    nullable: true
+                  providers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        key:
+                          type: string
+                          minLength: 1
+                          maxLength: 128
+                        displayName:
+                          type: string
+                          minLength: 1
+                          maxLength: 255
+                        organization:
+                          type: string
+                          nullable: true
+                        protocol:
+                          type: string
+                          enum:
+                            - oidc
+                            - saml
+                            - ldap
+                        loginMethod:
+                          type: string
+                          enum:
+                            - redirect
+                            - password
+                        preferred:
+                          type: boolean
+                        loginDomains:
+                          type: array
+                          items:
+                            type: string
+                            maxLength: 253
+                            pattern: ^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+                      required:
+                        - id
+                        - key
+                        - displayName
+                        - organization
+                        - protocol
+                        - loginMethod
+                        - preferred
+                        - loginDomains
+                  configurationStatus:
+                    type: string
+                    enum:
+                      - ready
+                      - no_login_method
+                required:
+                  - localPassword
+                  - providerSelection
+                  - autoRedirectProviderId
+                  - providers
+                  - configurationStatus
+      security: []
+  /api/auth/providers/{providerId}/start:
+    get:
+      operationId: getAuthProvidersByProviderIdStart
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: providerId
+          in: path
+      responses:
+        "302":
+          description: Redirect to the selected provider-neutral OIDC or SAML identity provider
+        "404":
+          description: Identity provider not found
+      security: []
+  /api/auth/providers/{providerId}/login:
+    post:
+      operationId: postAuthProvidersByProviderIdLogin
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: providerId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        "200":
+          description: Provider-neutral LDAP identity login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedSessionLoginResponse"
+        "401":
+          description: Invalid directory credentials
+      security: []
+  /api/auth/providers/saml/callback:
+    post:
+      operationId: postAuthProvidersSamlCallback
+      tags:
+        - Auth & Health
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                SAMLResponse:
+                  type: string
+                RelayState:
+                  type: string
+              required:
+                - SAMLResponse
+                - RelayState
+      responses:
+        "302":
+          description: Provider-neutral SAML callback redirect
+        "401":
+          description: Invalid identity provider state
+      security: []
+  /api/auth/providers/{providerId}/oidc/backchannel-logout:
+    post:
+      operationId: postAuthProvidersByProviderIdOidcBackchannelLogout
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: providerId
+          in: path
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                logout_token:
+                  type: string
+              required:
+                - logout_token
+              additionalProperties: false
+      responses:
+        "200":
+          description: Verified provider sessions revoked
+        "400":
+          description: Invalid logout request
+        "401":
+          description: Logout token validation failed
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/auth/identity/{providerKey}/saml/logout:
+    post:
+      operationId: postAuthIdentityByProviderKeySamlLogout
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: providerKey
+          in: path
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                SAMLRequest:
+                  type: string
+                SAMLResponse:
+                  type: string
+                RelayState:
+                  type: string
+              additionalProperties: false
+      responses:
+        "302":
+          description: Signed SAML logout request handled or correlated response completed
+        "401":
+          description: Signature or correlation validation failed
+      security: []
+    get:
+      operationId: getAuthIdentityByProviderKeySamlLogout
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: providerKey
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: SAMLResponse
+          in: query
+        - schema:
+            type: string
+          required: true
+          name: RelayState
+          in: query
+        - schema:
+            type: string
+          required: true
+          name: SigAlg
+          in: query
+        - schema:
+            type: string
+          required: true
+          name: Signature
+          in: query
+      responses:
+        "302":
+          description: Signed and correlated SAML Redirect LogoutResponse completed
+        "401":
+          description: Signature or correlation validation failed
+      security: []
+  /api/t/{tenantSlug}/auth/login-methods:
+    get:
+      operationId: getTByTenantSlugAuthLoginMethods
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: tenantSlug
+          in: path
+      responses:
+        "200":
+          description: Tenant-scoped policy-resolved login methods safe to show before authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  localPassword:
+                    type: object
+                    properties:
+                      enabled:
+                        type: boolean
+                    required:
+                      - enabled
+                  providerSelection:
+                    type: string
+                    enum:
+                      - auto_redirect_single
+                      - chooser
+                      - progressive
+                    description: Controls how the public login page selects among enabled direct identity providers.
+                  autoRedirectProviderId:
+                    type: string
+                    nullable: true
+                  providers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        key:
+                          type: string
+                          minLength: 1
+                          maxLength: 128
+                        displayName:
+                          type: string
+                          minLength: 1
+                          maxLength: 255
+                        organization:
+                          type: string
+                          nullable: true
+                        protocol:
+                          type: string
+                          enum:
+                            - oidc
+                            - saml
+                            - ldap
+                        loginMethod:
+                          type: string
+                          enum:
+                            - redirect
+                            - password
+                        preferred:
+                          type: boolean
+                        loginDomains:
+                          type: array
+                          items:
+                            type: string
+                            maxLength: 253
+                            pattern: ^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+                      required:
+                        - id
+                        - key
+                        - displayName
+                        - organization
+                        - protocol
+                        - loginMethod
+                        - preferred
+                        - loginDomains
+                  configurationStatus:
+                    type: string
+                    enum:
+                      - ready
+                      - no_login_method
+                required:
+                  - localPassword
+                  - providerSelection
+                  - autoRedirectProviderId
+                  - providers
+                  - configurationStatus
+      security: []
+  /api/t/{tenantSlug}/auth/providers/{providerId}/start:
+    get:
+      operationId: getTByTenantSlugAuthProvidersByProviderIdStart
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: tenantSlug
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: providerId
+          in: path
+      responses:
+        "302":
+          description: Redirect to the selected tenant-scoped OIDC or SAML identity provider
+        "404":
+          description: Identity provider not found in the resolved tenant scope
+      security: []
+  /api/t/{tenantSlug}/auth/providers/{providerId}/login:
+    post:
+      operationId: postTByTenantSlugAuthProvidersByProviderIdLogin
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: tenantSlug
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: providerId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        "200":
+          description: Tenant-scoped provider-neutral LDAP identity login
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedSessionLoginResponse"
+        "401":
+          description: Invalid directory credentials
+      security: []
+  /api/t/{tenantSlug}/auth/identity/callback:
+    get:
+      operationId: getTByTenantSlugAuthIdentityCallback
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 63
+            pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+          required: true
+          name: tenantSlug
+          in: path
+      responses:
+        "302":
+          description: Release-aware tenant-scoped OIDC callback redirect
+        "401":
+          description: Invalid, expired, or cross-tenant state
+      security: []
+  /api/t/{tenantSlug}/auth/providers/saml/callback:
+    post:
+      operationId: postTByTenantSlugAuthProvidersSamlCallback
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 63
+            pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+          required: true
+          name: tenantSlug
+          in: path
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                SAMLResponse:
+                  type: string
+                RelayState:
+                  type: string
+              required:
+                - SAMLResponse
+                - RelayState
+      responses:
+        "302":
+          description: Release-aware tenant-scoped SAML callback redirect
+        "401":
+          description: Invalid, expired, or cross-tenant assertion state
+      security: []
+  /api/t/{tenantSlug}/auth/sso-config:
+    get:
+      operationId: getTByTenantSlugAuthSsoConfig
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: tenantSlug
+          in: path
+      responses:
+        "200":
+          description: Resolved SSO requirement for the tenant login experience
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ssoRequired:
+                    type: boolean
+                required:
+                  - ssoRequired
+                additionalProperties: false
+      security: []
+  /api/t/{tenantSlug}/invitations/capabilities:
+    get:
+      operationId: getTByTenantSlugInvitationsCapabilities
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: tenantSlug
+          in: path
+      responses:
+        "200":
+          description: Invitation readiness flags for the authenticated tenant UI
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ssoRequired:
+                    type: boolean
+                  emailConfigured:
+                    type: boolean
+                required:
+                  - ssoRequired
+                  - emailConfigured
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/t/{tenantSlug}/invitations:
+    post:
+      operationId: postTByTenantSlugInvitations
+      tags:
+        - Auth & Health
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: tenantSlug
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                resourceType:
+                  type: string
+                  enum:
+                    - tenant
+                    - project
+                    - engine
+                resourceId:
+                  type: string
+                resourceName:
+                  type: string
+                role:
+                  type: string
+                deliveryMethod:
+                  type: string
+                  enum:
+                    - email
+                    - manual
+                  default: email
+              required:
+                - email
+                - resourceType
+      responses:
+        "201":
+          description: Invitation created. Manual delivery may include reveal-once onboarding details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invited:
+                    type: boolean
+                    enum:
+                      - true
+                  emailSent:
+                    type: boolean
+                  emailError:
+                    type: string
+                  inviteUrl:
+                    type: string
+                  oneTimePassword:
+                    type: string
+                required:
+                  - invited
+                  - emailSent
+        "403":
+          description: Forbidden
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Access token returned by the login endpoints, sent as `Authorization: Bearer <token>`."
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: Access token cookie set by the browser login flows. Mutating requests also need the XSRF header.
+  schemas:
+    AccessAuthorityMode:
+      type: string
+      enum:
+        - manual
+        - transition_to_sso
+        - sso_managed
+      description: Controls manual membership and scoped role-assignment mutations. SSO-managed mode preserves existing rows as effective, view-only access.
+    AuthenticatedSessionLoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/AuthenticatedSessionUser"
+        expiresIn:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        emailVerificationRequired:
+          type: boolean
+      required:
+        - user
+        - expiresIn
+      additionalProperties: false
+    AuthenticatedSessionUser:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        platformRole:
+          type: string
+          enum:
+            - admin
+            - user
+        capabilities:
+          type: object
+          additionalProperties:
+            type: boolean
+        isActive:
+          type: boolean
+        isEmailVerified:
+          type: boolean
+        mustResetPassword:
+          type: boolean
+        createdAt:
+          anyOf:
+            - type: number
+            - type: string
+              pattern: ^\d+$
+        lastLoginAt:
+          anyOf:
+            - type: number
+            - type: string
+              pattern: ^\d+$
+            - nullable: true
+        session:
+          type: object
+          properties:
+            principal:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - user
+                id:
+                  type: string
+              required:
+                - type
+                - id
+            tenant:
+              type: object
+              properties:
+                id:
+                  type: string
+                  nullable: true
+              required:
+                - id
+          required:
+            - principal
+            - tenant
+      required:
+        - id
+        - email
+        - session
+      additionalProperties:
+        nullable: true
+    ConfigBootstrapStatus:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+            - disabled
+            - validate
+            - apply
+        status:
+          type: string
+          enum:
+            - disabled
+            - validated
+            - applied
+            - failed
+        hash:
+          type: string
+          nullable: true
+        message:
+          type: string
+          nullable: true
+        reconciliation:
+          type: string
+          enum:
+            - not_run
+            - completed
+            - pending
+        secretPreflight:
+          type: string
+          enum:
+            - not_required
+            - passed
+            - failed
+        issueCode:
+          type: string
+          nullable: true
+          enum:
+            - bundle_path_missing
+            - bundle_read_failed
+            - hash_mismatch
+            - validation_failed
+            - secret_preflight_failed
+            - tenant_scope_missing
+            - apply_failed
+            - identity_reconciliation_failed
+            - null
+      required:
+        - mode
+        - status
+        - hash
+        - message
+        - reconciliation
+        - secretPreflight
+        - issueCode
+    EngineOnboardingMode:
+      type: string
+      enum:
+        - manual_allowed
+        - external_only
+        - hybrid
+      description: Controls manual engine inventory lifecycle operations. Configuration bundles and the external registration API retain their own source-owned paths.
+    EngineRuntimeAuthorizationMode:
+      type: string
+      enum:
+        - enterpriseglue_authoritative
+        - mirrored_engine_backstop
+      description: Controls runtime authorization authority independently from authentication, engine onboarding, and membership management.
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+            - degraded
+        configBootstrap:
+          $ref: "#/components/schemas/ConfigBootstrapStatus"
+      required:
+        - status
+        - configBootstrap
+    NativeTenantMembership:
+      type: object
+      properties:
+        tenantId:
+          type: string
+          minLength: 1
+        tenantSlug:
+          type: string
+          minLength: 1
+          maxLength: 63
+          pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+        tenantName:
+          type: string
+          minLength: 1
+        tenantStatus:
+          type: string
+          enum:
+            - active
+            - suspended
+            - deleting
+        role:
+          type: string
+          enum:
+            - admin
+            - member
+      required:
+        - tenantId
+        - tenantSlug
+        - tenantName
+        - tenantStatus
+        - role
+    PlatformGovernanceBehavior:
+      type: object
+      properties:
+        manualEngineAccessMutationsAllowed:
+          type: boolean
+        manualProjectAccessMutationsAllowed:
+          type: boolean
+        manualEngineRegistrationAllowed:
+          type: boolean
+        manualProjectEngineTargetMutationsAllowed:
+          type: boolean
+        governanceSettingsMutations:
+          type: string
+          enum:
+            - allowed
+            - allowed_marks_drift
+            - blocked
+      required:
+        - manualEngineAccessMutationsAllowed
+        - manualProjectAccessMutationsAllowed
+        - manualEngineRegistrationAllowed
+        - manualProjectEngineTargetMutationsAllowed
+        - governanceSettingsMutations
+      additionalProperties: false
+    ProjectEngineTargetPolicyMode:
+      type: string
+      enum:
+        - manual_allowed
+        - external_only
+        - hybrid
+      description: Controls manual project-to-engine deployment-target changes independently from project creation and engine access.
+    PublicPlatformSettings:
+      type: object
+      properties:
+        syncPushEnabled:
+          type: boolean
+        syncPullEnabled:
+          type: boolean
+        gitProjectTokenSharingEnabled:
+          type: boolean
+        defaultDeployRoles:
+          type: array
+          items:
+            type: string
+        engineOnboardingMode:
+          $ref: "#/components/schemas/EngineOnboardingMode"
+        projectEngineTargetMode:
+          $ref: "#/components/schemas/ProjectEngineTargetPolicyMode"
+        engineAccessAuthority:
+          $ref: "#/components/schemas/AccessAuthorityMode"
+        projectAccessAuthority:
+          $ref: "#/components/schemas/AccessAuthorityMode"
+        engineRuntimeAuthorizationMode:
+          $ref: "#/components/schemas/EngineRuntimeAuthorizationMode"
+        governanceBehavior:
+          $ref: "#/components/schemas/PlatformGovernanceBehavior"
+        credentiallessCustomerSidecarsEnabled:
+          type: boolean
+        ssoAllEnginesAssignmentMappingsEnabled:
+          type: boolean
+        ssoEngineOwnerAssignmentMappingsEnabled:
+          type: boolean
+        ssoEngineDelegateAssignmentMappingsEnabled:
+          type: boolean
+        ssoRegexClaimMappingsEnabled:
+          type: boolean
+        ssoBroadEntitlementMappingsEnabled:
+          type: boolean
+        ssoSecretViewMappingsEnabled:
+          type: boolean
+        ssoUnredactedAuditMappingsEnabled:
+          type: boolean
+        ssoPermanentDeleteMappingsEnabled:
+          type: boolean
+      required:
+        - syncPushEnabled
+        - syncPullEnabled
+        - gitProjectTokenSharingEnabled
+        - defaultDeployRoles
+        - engineOnboardingMode
+        - projectEngineTargetMode
+        - engineAccessAuthority
+        - projectAccessAuthority
+        - engineRuntimeAuthorizationMode
+        - governanceBehavior
+        - credentiallessCustomerSidecarsEnabled
+        - ssoAllEnginesAssignmentMappingsEnabled
+        - ssoEngineOwnerAssignmentMappingsEnabled
+        - ssoEngineDelegateAssignmentMappingsEnabled
+        - ssoRegexClaimMappingsEnabled
+        - ssoBroadEntitlementMappingsEnabled
+        - ssoSecretViewMappingsEnabled
+        - ssoUnredactedAuditMappingsEnabled
+        - ssoPermanentDeleteMappingsEnabled
+    Readiness:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ready
+            - not_ready
+        configBootstrap:
+          $ref: "#/components/schemas/ConfigBootstrapStatus"
+      required:
+        - status
+        - configBootstrap
+    TenantDiscoveryResponse:
+      oneOf:
+        - type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - resolved
+            tenantSlug:
+              type: string
+              minLength: 1
+              maxLength: 63
+              pattern: ^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+            loginPath:
+              type: string
+              pattern: ^\/t\/[a-z0-9-]+\/login$
+          required:
+            - status
+            - tenantSlug
+            - loginPath
+        - type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - verification_sent
+            message:
+              type: string
+              minLength: 1
+          required:
+            - status
+            - message
+  parameters: {}

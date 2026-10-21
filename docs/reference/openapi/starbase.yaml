@@ -1,0 +1,5866 @@
+openapi: 3.0.3
+info:
+  title: EnterpriseGlue Starbase & Git API
+  version: 0.1.0
+  description: |-
+    Design-time projects, folders, files, versions, comments, deployments and Git/VCS synchronisation.
+
+    Tenant-scoped routes under `/api/t/{tenantSlug}/...` are also served at the legacy alias `/t/{tenantSlug}/api/...`; only the first form is documented.
+servers:
+  - url: /
+    description: This EnterpriseGlue deployment
+tags:
+  - name: Starbase & Git
+    description: Design-time projects, folders, files, versions, comments, deployments and Git/VCS synchronisation.
+paths:
+  /starbase-api/projects:
+    get:
+      operationId: getStarbaseProjects
+      tags:
+        - Starbase & Git
+      responses:
+        "200":
+          description: List projects
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectOverviewList"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    post:
+      operationId: postStarbaseProjects
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectRequest"
+      responses:
+        "200":
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateProjectResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/import-preview:
+    post:
+      operationId: postStarbaseProjectsImportPreview
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectImportPreviewRequest"
+      responses:
+        "200":
+          description: Preview latest BPMN/DMN definitions available for project import from an engine
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectImportPreviewResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}:
+    patch:
+      operationId: patchStarbaseProjectsByProjectId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RenameProjectRequest"
+      responses:
+        "200":
+          description: Project renamed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                required:
+                  - id
+                  - name
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    delete:
+      operationId: deleteStarbaseProjectsByProjectId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "204":
+          description: Project deleted
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/files:
+    get:
+      operationId: getStarbaseProjectsByProjectIdFiles
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: List files in project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    folderId:
+                      type: string
+                      nullable: true
+                    name:
+                      type: string
+                    type:
+                      type: string
+                    bpmnProcessId:
+                      type: string
+                      nullable: true
+                    dmnDecisionId:
+                      type: string
+                      nullable: true
+                    createdAt:
+                      type: number
+                    updatedAt:
+                      type: number
+                  required:
+                    - id
+                    - folderId
+                    - name
+                    - type
+                    - createdAt
+                    - updatedAt
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    post:
+      operationId: postStarbaseProjectsByProjectIdFiles
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFileRequest"
+      responses:
+        "201":
+          description: File created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  type:
+                    type: string
+                    enum:
+                      - bpmn
+                      - dmn
+                  bpmnProcessId:
+                    type: string
+                    nullable: true
+                  dmnDecisionId:
+                    type: string
+                    nullable: true
+                  createdAt:
+                    type: number
+                  updatedAt:
+                    type: number
+                required:
+                  - id
+                  - name
+                  - type
+                  - bpmnProcessId
+                  - dmnDecisionId
+                  - createdAt
+                  - updatedAt
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/files/{fileId}:
+    get:
+      operationId: getStarbaseFilesByFileId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      responses:
+        "200":
+          description: Get file by id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/File"
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    put:
+      operationId: putStarbaseFilesByFileId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFileXmlRequest"
+      responses:
+        "200":
+          description: File XML updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updatedAt:
+                    type: number
+                required:
+                  - updatedAt
+        "404":
+          description: Not found
+        "409":
+          description: Conflict - file was modified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  currentUpdatedAt:
+                    type: number
+                required:
+                  - message
+                  - currentUpdatedAt
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    patch:
+      operationId: patchStarbaseFilesByFileId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFileMetadataRequest"
+      responses:
+        "200":
+          description: File metadata updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  folderId:
+                    type: string
+                    nullable: true
+                    format: uuid
+                  updatedAt:
+                    type: number
+                required:
+                  - id
+                  - name
+                  - folderId
+                  - updatedAt
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    delete:
+      operationId: deleteStarbaseFilesByFileId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      responses:
+        "204":
+          description: File deleted
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/files/{fileId}/callers:
+    get:
+      operationId: getStarbaseProjectsByProjectIdFilesByFileIdCallers
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      responses:
+        "200":
+          description: List BPMN call activities that reference the target file
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  callers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        parentFileId:
+                          type: string
+                        parentFileName:
+                          type: string
+                        parentFolderId:
+                          type: string
+                          nullable: true
+                        parentProcessId:
+                          type: string
+                          nullable: true
+                        callActivityId:
+                          type: string
+                        callActivityName:
+                          type: string
+                          nullable: true
+                      required:
+                        - parentFileId
+                        - parentFileName
+                        - parentFolderId
+                        - parentProcessId
+                        - callActivityId
+                        - callActivityName
+                required:
+                  - callers
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/files/{fileId}/comments:
+    get:
+      operationId: getStarbaseFilesByFileIdComments
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      responses:
+        "200":
+          description: List comments for a file
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/files/{fileId}/versions:
+    get:
+      operationId: getStarbaseFilesByFileIdVersions
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      responses:
+        "200":
+          description: List file versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Version"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    post:
+      operationId: postStarbaseFilesByFileIdVersions
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  maxLength: 500
+      responses:
+        "201":
+          description: File version created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  author:
+                    type: string
+                  message:
+                    type: string
+                  createdAt:
+                    type: number
+                required:
+                  - id
+                  - author
+                  - message
+                  - createdAt
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/files/{fileId}/versions/{versionId}:
+    get:
+      operationId: getStarbaseFilesByFileIdVersionsByVersionId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: versionId
+          in: path
+      responses:
+        "200":
+          description: File version detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  fileId:
+                    type: string
+                  author:
+                    type: string
+                  message:
+                    type: string
+                  xml:
+                    type: string
+                  createdAt:
+                    type: number
+                required:
+                  - id
+                  - fileId
+                  - author
+                  - message
+                  - xml
+                  - createdAt
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/files/{fileId}/versions/{versionId}/restore:
+    post:
+      operationId: postStarbaseFilesByFileIdVersionsByVersionIdRestore
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: versionId
+          in: path
+      responses:
+        "200":
+          description: File restored from version
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  restored:
+                    type: boolean
+                  fileId:
+                    type: string
+                  versionId:
+                    type: string
+                  updatedAt:
+                    type: number
+                required:
+                  - restored
+                  - fileId
+                  - versionId
+                  - updatedAt
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/versions/{versionId}/compare/{otherVersionId}:
+    get:
+      operationId: getStarbaseVersionsByVersionIdCompareByOtherVersionId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: versionId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: otherVersionId
+          in: path
+      responses:
+        "200":
+          description: Version comparison
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompareVersionsResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/deployments:
+    get:
+      operationId: getStarbaseDeployments
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: id
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: name
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: nameLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: source
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: tenantIdIn
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withoutTenantId
+          in: query
+        - schema:
+            type: string
+            enum:
+              - id
+              - name
+              - deploymentTime
+              - tenantId
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          name: sortOrder
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: List deployments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deployment"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    post:
+      operationId: postStarbaseDeployments
+      tags:
+        - Starbase & Git
+      responses:
+        "501":
+          description: Multipart deployment creation is not implemented on this route
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/deployments/{id}:
+    get:
+      operationId: getStarbaseDeploymentsById
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Get deployment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deployment"
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    delete:
+      operationId: deleteStarbaseDeploymentsById
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+          required: false
+          name: cascade
+          in: query
+      responses:
+        "204":
+          description: Deleted
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/process-definitions/{id}/diagram:
+    get:
+      operationId: getStarbaseProcessDefinitionsByIdDiagram
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Process diagram
+          content:
+            application/json:
+              schema:
+                nullable: true
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/repositories/init:
+    post:
+      operationId: postGitRepositoriesInit
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InitRepositoryRequest"
+      responses:
+        "201":
+          description: Repository initialized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Repository"
+        "403":
+          description: Forbidden
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/repositories/clone:
+    post:
+      operationId: postGitRepositoriesClone
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CloneRepositoryRequest"
+      responses:
+        "201":
+          description: Repository cloned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Repository"
+        "403":
+          description: Forbidden
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/repositories:
+    get:
+      operationId: getGitRepositories
+      tags:
+        - Starbase & Git
+      responses:
+        "200":
+          description: List of repositories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Repository"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/repositories/{id}:
+    get:
+      operationId: getGitRepositoriesById
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Repository details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Repository"
+        "404":
+          description: Repository not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    delete:
+      operationId: deleteGitRepositoriesById
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+      responses:
+        "204":
+          description: Repository deleted
+        "404":
+          description: Repository not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/deploy:
+    post:
+      operationId: postGitDeploy
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeployRequest"
+      responses:
+        "201":
+          description: Deployment successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeploymentResponse"
+        "403":
+          description: Forbidden
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/rollback:
+    post:
+      operationId: postGitRollback
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RollbackRequest"
+      responses:
+        "200":
+          description: Rollback successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                required:
+                  - success
+                  - message
+        "403":
+          description: Forbidden
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/commits:
+    get:
+      operationId: getGitCommits
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: limit
+          in: query
+      responses:
+        "200":
+          description: Commit history
+          content:
+            application/json:
+              schema:
+                nullable: true
+        "400":
+          description: Bad request
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/locks:
+    post:
+      operationId: postGitLocks
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcquireLockRequest"
+      responses:
+        "201":
+          description: Lock acquired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LockResponse"
+        "409":
+          description: File locked by another user
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    get:
+      operationId: getGitLocks
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: query
+      responses:
+        "200":
+          description: Active locks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  locks:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LockResponse"
+                required:
+                  - locks
+                additionalProperties: false
+        "400":
+          description: Bad request
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/locks/{lockId}:
+    delete:
+      operationId: deleteGitLocksByLockId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: lockId
+          in: path
+      responses:
+        "204":
+          description: Lock released
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/members/user-search:
+    get:
+      operationId: getStarbaseProjectsByProjectIdMembersUserSearch
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: false
+          name: q
+          in: query
+      responses:
+        "200":
+          description: Project member search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    email:
+                      type: string
+                    firstName:
+                      type: string
+                      nullable: true
+                    lastName:
+                      type: string
+                      nullable: true
+                  required:
+                    - id
+                    - email
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/members/lookup:
+    get:
+      operationId: getStarbaseProjectsByProjectIdMembersLookup
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+            format: email
+          required: false
+          name: email
+          in: query
+      responses:
+        "200":
+          description: Project member candidate lookup
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mode:
+                    type: string
+                    enum:
+                      - invite
+                      - existing-member
+                      - direct-add
+                  user:
+                    type: object
+                    nullable: true
+                    properties:
+                      id:
+                        type: string
+                      email:
+                        type: string
+                      firstName:
+                        type: string
+                        nullable: true
+                      lastName:
+                        type: string
+                        nullable: true
+                    required:
+                      - id
+                      - email
+                required:
+                  - mode
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/members/capabilities:
+    get:
+      operationId: getStarbaseProjectsByProjectIdMembersCapabilities
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: Project member invitation capabilities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ssoRequired:
+                    type: boolean
+                  emailConfigured:
+                    type: boolean
+                required:
+                  - ssoRequired
+                  - emailConfigured
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/members/{userId}/deploy-permission:
+    put:
+      operationId: putStarbaseProjectsByProjectIdMembersByUserIdDeployPermission
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: userId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                allowed:
+                  type: boolean
+              required:
+                - allowed
+      responses:
+        "200":
+          description: Deploy permission grant updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  allowed:
+                    type: boolean
+                required:
+                  - allowed
+        "403":
+          description: Project access is SSO-managed or the caller lacks permission
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/members:
+    get:
+      operationId: getStarbaseProjectsByProjectIdMembers
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: Project members and unresolved invitations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  members:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        projectId:
+                          type: string
+                        userId:
+                          type: string
+                        role:
+                          type: string
+                          enum:
+                            - owner
+                            - delegate
+                            - developer
+                            - editor
+                            - viewer
+                        roles:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - owner
+                              - delegate
+                              - developer
+                              - editor
+                              - viewer
+                        invitedById:
+                          type: string
+                          nullable: true
+                        joinedAt:
+                          type: number
+                        user:
+                          type: object
+                          nullable: true
+                          properties:
+                            id:
+                              type: string
+                            email:
+                              type: string
+                            firstName:
+                              type: string
+                              nullable: true
+                            lastName:
+                              type: string
+                              nullable: true
+                          required:
+                            - id
+                            - email
+                        deployAllowed:
+                          type: boolean
+                          nullable: true
+                      required:
+                        - id
+                        - projectId
+                        - userId
+                        - role
+                        - joinedAt
+                  pendingInvites:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        invitationId:
+                          type: string
+                        userId:
+                          type: string
+                        email:
+                          type: string
+                          format: email
+                        firstName:
+                          type: string
+                          nullable: true
+                        lastName:
+                          type: string
+                          nullable: true
+                        role:
+                          type: string
+                          enum:
+                            - owner
+                            - delegate
+                            - developer
+                            - editor
+                            - viewer
+                        roles:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - owner
+                              - delegate
+                              - developer
+                              - editor
+                              - viewer
+                        status:
+                          type: string
+                          enum:
+                            - pending
+                            - expired
+                            - onboarding
+                        deliveryMethod:
+                          type: string
+                          enum:
+                            - email
+                            - manual
+                        expiresAt:
+                          type: number
+                        createdAt:
+                          type: number
+                      required:
+                        - invitationId
+                        - userId
+                        - email
+                        - role
+                        - status
+                        - deliveryMethod
+                        - expiresAt
+                        - createdAt
+                required:
+                  - members
+                  - pendingInvites
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    post:
+      operationId: postStarbaseProjectsByProjectIdMembers
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                role:
+                  type: string
+                  enum:
+                    - delegate
+                    - developer
+                    - editor
+                    - viewer
+                roles:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - delegate
+                      - developer
+                      - editor
+                      - viewer
+                deliveryMethod:
+                  type: string
+                  enum:
+                    - email
+                    - manual
+              required:
+                - email
+      responses:
+        "201":
+          description: Member added directly or invitation created
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      id:
+                        type: string
+                      projectId:
+                        type: string
+                      userId:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                          - owner
+                          - delegate
+                          - developer
+                          - editor
+                          - viewer
+                      roles:
+                        type: array
+                        items:
+                          type: string
+                          enum:
+                            - owner
+                            - delegate
+                            - developer
+                            - editor
+                            - viewer
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          email:
+                            type: string
+                          firstName:
+                            type: string
+                            nullable: true
+                          lastName:
+                            type: string
+                            nullable: true
+                        required:
+                          - id
+                          - email
+                      invited:
+                        type: boolean
+                        enum:
+                          - false
+                    required:
+                      - id
+                      - projectId
+                      - userId
+                      - role
+                      - roles
+                      - user
+                      - invited
+                  - type: object
+                    properties:
+                      invited:
+                        type: boolean
+                        enum:
+                          - true
+                      emailSent:
+                        type: boolean
+                      emailError:
+                        type: string
+                      inviteUrl:
+                        type: string
+                      oneTimePassword:
+                        type: string
+                    required:
+                      - invited
+                      - emailSent
+        "403":
+          description: Project access is SSO-managed or the caller lacks permission
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/pending-invites/{invitationId}/reissue:
+    post:
+      operationId: postStarbaseProjectsByProjectIdPendingInvitesByInvitationIdReissue
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: invitationId
+          in: path
+      responses:
+        "200":
+          description: Manual project invitation reissued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  invited:
+                    type: boolean
+                    enum:
+                      - true
+                  emailSent:
+                    type: boolean
+                    enum:
+                      - false
+                  inviteUrl:
+                    type: string
+                  oneTimePassword:
+                    type: string
+                required:
+                  - invited
+                  - emailSent
+        "403":
+          description: Project access is SSO-managed or the caller lacks permission
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/members/{userId}:
+    patch:
+      operationId: patchStarbaseProjectsByProjectIdMembersByUserId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: userId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum:
+                    - delegate
+                    - developer
+                    - editor
+                    - viewer
+                roles:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - delegate
+                      - developer
+                      - editor
+                      - viewer
+      responses:
+        "200":
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+        "403":
+          description: Project access is SSO-managed or the caller lacks permission
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    delete:
+      operationId: deleteStarbaseProjectsByProjectIdMembersByUserId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: userId
+          in: path
+      responses:
+        "204":
+          description: Member removed
+        "403":
+          description: Project access is SSO-managed or the caller lacks permission
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/transfer-ownership:
+    post:
+      operationId: postStarbaseProjectsByProjectIdTransferOwnership
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                newOwnerId:
+                  type: string
+                  format: uuid
+              required:
+                - newOwnerId
+      responses:
+        "200":
+          description: Ownership transferred
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required:
+                  - message
+        "403":
+          description: Project access is SSO-managed or the caller lacks permission
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/members/me:
+    get:
+      operationId: getStarbaseProjectsByProjectIdMembersMe
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: My membership
+          content:
+            application/json:
+              schema:
+                type: object
+                nullable: true
+                properties:
+                  id:
+                    type: string
+                  projectId:
+                    type: string
+                  userId:
+                    type: string
+                  role:
+                    type: string
+                    enum:
+                      - owner
+                      - delegate
+                      - developer
+                      - editor
+                      - viewer
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - owner
+                        - delegate
+                        - developer
+                        - editor
+                        - viewer
+                  invitedById:
+                    type: string
+                    nullable: true
+                  joinedAt:
+                    type: number
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      email:
+                        type: string
+                      firstName:
+                        type: string
+                        nullable: true
+                      lastName:
+                        type: string
+                        nullable: true
+                    required:
+                      - id
+                      - email
+                required:
+                  - id
+                  - projectId
+                  - userId
+                  - role
+                  - joinedAt
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/contents:
+    get:
+      operationId: getStarbaseProjectsByProjectIdContents
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: false
+          name: folderId
+          in: query
+      responses:
+        "200":
+          description: Project contents (folders + files)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectContents"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/folders:
+    get:
+      operationId: getStarbaseProjectsByProjectIdFolders
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: List all folders in project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FolderSummary"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    post:
+      operationId: postStarbaseProjectsByProjectIdFolders
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFolderRequest"
+      responses:
+        "201":
+          description: Folder created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  parentFolderId:
+                    type: string
+                    nullable: true
+                    format: uuid
+                  createdAt:
+                    type: number
+                  updatedAt:
+                    type: number
+                required:
+                  - id
+                  - name
+                  - parentFolderId
+                  - createdAt
+                  - updatedAt
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/folders/{folderId}:
+    patch:
+      operationId: patchStarbaseFoldersByFolderId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: folderId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFolderRequest"
+      responses:
+        "200":
+          description: Folder updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  parentFolderId:
+                    type: string
+                    nullable: true
+                    format: uuid
+                  updatedAt:
+                    type: number
+                required:
+                  - id
+                  - name
+                  - parentFolderId
+                  - updatedAt
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    delete:
+      operationId: deleteStarbaseFoldersByFolderId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: folderId
+          in: path
+      responses:
+        "204":
+          description: Folder deleted
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/folders/{folderId}/delete-preview:
+    get:
+      operationId: getStarbaseFoldersByFolderIdDeletePreview
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: folderId
+          in: path
+      responses:
+        "200":
+          description: Preview of folder deletion impact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FolderDeletePreview"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/folders/{folderId}/download:
+    get:
+      operationId: getStarbaseFoldersByFolderIdDownload
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: folderId
+          in: path
+      responses:
+        "200":
+          description: ZIP archive of folder contents with manifest
+          content:
+            application/zip:
+              schema:
+                type: string
+        "204":
+          description: Empty folder
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/download:
+    get:
+      operationId: getStarbaseProjectsByProjectIdDownload
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: ZIP archive of project with manifest
+          content:
+            application/zip:
+              schema:
+                type: string
+        "204":
+          description: Empty project
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/import-zip:
+    post:
+      operationId: postStarbaseProjectsByProjectIdImportZip
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      requestBody:
+        content:
+          application/zip:
+            schema:
+              type: string
+          application/octet-stream:
+            schema:
+              type: string
+      responses:
+        "201":
+          description: Project archive imported
+          content:
+            application/json:
+              schema:
+                nullable: true
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/download-selection:
+    post:
+      operationId: postStarbaseProjectsByProjectIdDownloadSelection
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fileIds:
+                  type: array
+                  items:
+                    type: string
+                  default: []
+                folderIds:
+                  type: array
+                  items:
+                    type: string
+                  default: []
+      responses:
+        "200":
+          description: ZIP archive of selected files and folders with manifest
+          content:
+            application/zip:
+              schema:
+                type: string
+        "204":
+          description: Empty selection
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/files/{fileId}/download:
+    get:
+      operationId: getStarbaseFilesByFileIdDownload
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      responses:
+        "200":
+          description: File XML download
+          content:
+            application/xml:
+              schema:
+                type: string
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/files/{fileId}/restore-from-commit:
+    post:
+      operationId: postStarbaseFilesByFileIdRestoreFromCommit
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                commitId:
+                  type: string
+                  minLength: 1
+                fileVersionNumber:
+                  type: integer
+                  minimum: 0
+                  exclusiveMinimum: true
+      responses:
+        "200":
+          description: File restored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  restored:
+                    type: boolean
+                    enum:
+                      - true
+                  fileId:
+                    type: string
+                    format: uuid
+                  commitId:
+                    type: string
+                  fileVersionNumber:
+                    type: integer
+                    nullable: true
+                  updatedAt:
+                    type: number
+                required:
+                  - restored
+                  - fileId
+                  - commitId
+                  - fileVersionNumber
+                  - updatedAt
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/engine-access:
+    get:
+      operationId: getStarbaseProjectsByProjectIdEngineAccess
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: Engine access status and deployment eligibility for project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectEngineAccessResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/engine-deployments:
+    get:
+      operationId: getStarbaseProjectsByProjectIdEngineDeployments
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: false
+          name: limit
+          in: query
+      responses:
+        "200":
+          description: Sanitized engine deployments for project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    projectId:
+                      type: string
+                      nullable: true
+                    engineId:
+                      type: string
+                    engineName:
+                      type: string
+                      nullable: true
+                    environmentTag:
+                      type: string
+                      nullable: true
+                    engineBaseUrl:
+                      type: string
+                      nullable: true
+                    gitDeploymentId:
+                      type: string
+                      nullable: true
+                    gitCommitSha:
+                      type: string
+                      nullable: true
+                    gitCommitMessage:
+                      type: string
+                      nullable: true
+                    camundaDeploymentId:
+                      type: string
+                      nullable: true
+                    camundaDeploymentName:
+                      type: string
+                      nullable: true
+                    camundaDeploymentTime:
+                      type: string
+                      nullable: true
+                    deployedBy:
+                      type: string
+                    deployedAt:
+                      type: number
+                    enableDuplicateFiltering:
+                      type: boolean
+                      nullable: true
+                    deployChangedOnly:
+                      type: boolean
+                      nullable: true
+                    resourceCount:
+                      type: number
+                      nullable: true
+                    status:
+                      type: string
+                      nullable: true
+                    errorMessage:
+                      type: string
+                      nullable: true
+                    rawResponse:
+                      type: string
+                      nullable: true
+                    ingestionSource:
+                      type: string
+                    lineageQuality:
+                      type: string
+                      enum:
+                        - complete
+                        - reported
+                        - discovered
+                        - inferred
+                    reportingPrincipalId:
+                      type: string
+                      nullable: true
+                    reconciledAt:
+                      type: number
+                      nullable: true
+                    lineageJson:
+                      type: string
+                    createdAt:
+                      type: number
+                    updatedAt:
+                      type: number
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/engine-deployments/latest:
+    get:
+      operationId: getStarbaseProjectsByProjectIdEngineDeploymentsLatest
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: Latest engine deployments per file
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    engineId:
+                      type: string
+                    engineDeploymentId:
+                      type: string
+                    fileId:
+                      type: string
+                    fileType:
+                      type: string
+                      nullable: true
+                    fileName:
+                      type: string
+                      nullable: true
+                    fileGitCommitId:
+                      type: string
+                      nullable: true
+                    artifacts:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                          key:
+                            type: string
+                          version:
+                            type: number
+                          id:
+                            type: string
+                        required:
+                          - kind
+                          - key
+                          - version
+                          - id
+                    deployedAt:
+                      type: number
+                      nullable: true
+                    engineName:
+                      type: string
+                      nullable: true
+                    environmentTag:
+                      type: string
+                      nullable: true
+                    fileUpdatedAt:
+                      type: number
+                      nullable: true
+                    fileContentHash:
+                      type: string
+                      nullable: true
+                    fileGitCommitMessage:
+                      type: string
+                      nullable: true
+                    resourceName:
+                      type: string
+                    artifactVersions:
+                      type: object
+                      additionalProperties:
+                        type: number
+                    gitDeploymentId:
+                      type: string
+                      nullable: true
+                    gitCommitSha:
+                      type: string
+                      nullable: true
+                    gitCommitMessage:
+                      type: string
+                      nullable: true
+                    camundaDeploymentId:
+                      type: string
+                      nullable: true
+                    camundaDeploymentName:
+                      type: string
+                      nullable: true
+                    camundaDeploymentTime:
+                      type: string
+                      nullable: true
+                  required:
+                    - engineId
+                    - engineDeploymentId
+                    - fileId
+                    - fileType
+                    - fileName
+                    - fileGitCommitId
+                    - artifacts
+                    - deployedAt
+                    - engineName
+                    - environmentTag
+                    - fileUpdatedAt
+                    - fileContentHash
+                    - fileGitCommitMessage
+                    - resourceName
+                    - artifactVersions
+                    - gitDeploymentId
+                    - gitCommitSha
+                    - gitCommitMessage
+                    - camundaDeploymentId
+                    - camundaDeploymentName
+                    - camundaDeploymentTime
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/files/{fileId}/deployments:
+    get:
+      operationId: getStarbaseProjectsByProjectIdFilesByFileIdDeployments
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      responses:
+        "200":
+          description: Deployments for a specific file
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    engineId:
+                      type: string
+                    engineDeploymentId:
+                      type: string
+                    fileId:
+                      type: string
+                    fileType:
+                      type: string
+                      nullable: true
+                    fileName:
+                      type: string
+                      nullable: true
+                    fileGitCommitId:
+                      type: string
+                      nullable: true
+                    artifacts:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                          key:
+                            type: string
+                          version:
+                            type: number
+                          id:
+                            type: string
+                        required:
+                          - kind
+                          - key
+                          - version
+                          - id
+                    deployedAt:
+                      type: number
+                      nullable: true
+                    engineName:
+                      type: string
+                      nullable: true
+                    environmentTag:
+                      type: string
+                      nullable: true
+                    fileVersionNumber:
+                      type: number
+                      nullable: true
+                  required:
+                    - engineId
+                    - engineDeploymentId
+                    - fileId
+                    - fileType
+                    - fileName
+                    - fileGitCommitId
+                    - artifacts
+                    - deployedAt
+                    - engineName
+                    - environmentTag
+                    - fileVersionNumber
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/files/{fileId}/deployments/history:
+    get:
+      operationId: getStarbaseProjectsByProjectIdFilesByFileIdDeploymentsHistory
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: fileId
+          in: path
+      responses:
+        "200":
+          description: Full deployment history for a file
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    engineId:
+                      type: string
+                    engineDeploymentId:
+                      type: string
+                    fileId:
+                      type: string
+                    fileType:
+                      type: string
+                      nullable: true
+                    fileName:
+                      type: string
+                      nullable: true
+                    fileGitCommitId:
+                      type: string
+                      nullable: true
+                    artifacts:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          kind:
+                            type: string
+                          key:
+                            type: string
+                          version:
+                            type: number
+                          id:
+                            type: string
+                        required:
+                          - kind
+                          - key
+                          - version
+                          - id
+                    deployedAt:
+                      type: number
+                      nullable: true
+                    engineName:
+                      type: string
+                      nullable: true
+                    environmentTag:
+                      type: string
+                      nullable: true
+                    fileVersionNumber:
+                      type: number
+                      nullable: true
+                  required:
+                    - engineId
+                    - engineDeploymentId
+                    - fileId
+                    - fileType
+                    - fileName
+                    - fileGitCommitId
+                    - artifacts
+                    - deployedAt
+                    - engineName
+                    - environmentTag
+                    - fileVersionNumber
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /vcs-api/projects/uncommitted-status:
+    get:
+      operationId: getVcsProjectsUncommittedStatus
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectIds
+          in: query
+      responses:
+        "200":
+          description: Batch uncommitted status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statuses:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        hasUncommittedChanges:
+                          type: boolean
+                        dirtyFileCount:
+                          type: number
+                      required:
+                        - hasUncommittedChanges
+                        - dirtyFileCount
+                required:
+                  - statuses
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /vcs-api/projects/{projectId}/commit:
+    post:
+      operationId: postVcsProjectsByProjectIdCommit
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                fileIds:
+                  type: array
+                  items:
+                    type: string
+                hotfixFromCommitId:
+                  type: string
+                hotfixFromFileVersion:
+                  type: number
+              required:
+                - message
+      responses:
+        "200":
+          description: Commit created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commitId:
+                    type: string
+                  message:
+                    type: string
+                  fileCount:
+                    type: number
+                  createdAt:
+                    type: number
+                required:
+                  - commitId
+                  - message
+                  - fileCount
+                  - createdAt
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /vcs-api/projects/{projectId}/publish:
+    post:
+      operationId: postVcsProjectsByProjectIdPublish
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: Draft merged to main
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  mergeCommitId:
+                    type: string
+                  filesChanged:
+                    type: number
+                required:
+                  - success
+                  - mergeCommitId
+                  - filesChanged
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /vcs-api/projects/{projectId}/commits:
+    get:
+      operationId: getVcsProjectsByProjectIdCommits
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+            enum:
+              - draft
+              - main
+              - all
+          required: false
+          name: branch
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: fileId
+          in: query
+      responses:
+        "200":
+          description: Commit history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  commits:
+                    type: array
+                    items:
+                      nullable: true
+                required:
+                  - commits
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /vcs-api/projects/{projectId}/status:
+    get:
+      operationId: getVcsProjectsByProjectIdStatus
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: VCS status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  initialized:
+                    type: boolean
+                  draftBranchId:
+                    type: string
+                  mainBranchId:
+                    type: string
+                  hasUnpublishedCommits:
+                    type: boolean
+                  lastDraftCommit:
+                    nullable: true
+                  lastMainCommit:
+                    nullable: true
+                required:
+                  - initialized
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /vcs-api/projects/{projectId}/uncommitted-files:
+    get:
+      operationId: getVcsProjectsByProjectIdUncommittedFiles
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+            enum:
+              - main
+              - draft
+          required: false
+          name: baseline
+          in: query
+      responses:
+        "200":
+          description: Uncommitted file IDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hasUncommittedChanges:
+                    type: boolean
+                  uncommittedFileIds:
+                    type: array
+                    items:
+                      type: string
+                  uncommittedFolderIds:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - hasUncommittedChanges
+                  - uncommittedFileIds
+                  - uncommittedFolderIds
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /vcs-api/projects/{projectId}/commits/{commitId}/files:
+    get:
+      operationId: getVcsProjectsByProjectIdCommitsByCommitIdFiles
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: commitId
+          in: path
+      responses:
+        "200":
+          description: File snapshots for commit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      nullable: true
+                required:
+                  - files
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /vcs-api/projects/{projectId}/commits/{commitId}/restore:
+    post:
+      operationId: postVcsProjectsByProjectIdCommitsByCommitIdRestore
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: commitId
+          in: path
+      responses:
+        "200":
+          description: Files restored from commit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  filesRestored:
+                    type: number
+                  newCommitId:
+                    type: string
+                required:
+                  - success
+                  - filesRestored
+                  - newCommitId
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/deployment-targets:
+    get:
+      operationId: getStarbaseProjectsByProjectIdDeploymentTargets
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+            enum:
+              - active
+              - disabled
+              - archived
+              - all
+          required: false
+          name: status
+          in: query
+        - schema:
+            type: string
+            enum:
+              - manual
+              - legacy
+              - ci
+              - api
+              - import
+              - deployment_history
+              - external
+              - system
+              - automation
+              - config
+          required: false
+          name: source
+          in: query
+      responses:
+        "200":
+          description: List deployment targets for one project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExternalProjectEngineTarget"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    post:
+      operationId: postStarbaseProjectsByProjectIdDeploymentTargets
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                engineId:
+                  type: string
+                  minLength: 1
+                status:
+                  type: string
+                  enum:
+                    - active
+                    - disabled
+                    - archived
+                allowManualDeploy:
+                  type: boolean
+                allowCiDeploy:
+                  type: boolean
+                allowApiDeploy:
+                  type: boolean
+                allowImport:
+                  type: boolean
+              required:
+                - engineId
+      responses:
+        "201":
+          description: Project deployment target created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                required:
+                  - id
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/deployment-targets/sync-legacy:
+    post:
+      operationId: postStarbaseProjectsByProjectIdDeploymentTargetsSyncLegacy
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: Legacy project-engine access mirrored into project targets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  createdOrUpdated:
+                    type: integer
+                    minimum: 0
+                required:
+                  - createdOrUpdated
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /starbase-api/projects/{projectId}/deployment-targets/{targetId}:
+    put:
+      operationId: putStarbaseProjectsByProjectIdDeploymentTargetsByTargetId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: targetId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - active
+                    - disabled
+                    - archived
+                allowManualDeploy:
+                  type: boolean
+                allowCiDeploy:
+                  type: boolean
+                allowApiDeploy:
+                  type: boolean
+                allowImport:
+                  type: boolean
+      responses:
+        "200":
+          description: Project deployment target updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                required:
+                  - success
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    delete:
+      operationId: deleteStarbaseProjectsByProjectIdDeploymentTargetsByTargetId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: targetId
+          in: path
+      responses:
+        "204":
+          description: Project deployment target archived
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/starbase/bridge/mission-control/evaluate:
+    post:
+      operationId: postStarbaseBridgeMissionControlEvaluate
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                engineId:
+                  type: string
+                projectId:
+                  type: string
+                fileId:
+                  type: string
+                targetId:
+                  type: string
+                definitionId:
+                  type: string
+                definitionKey:
+                  type: string
+                decisionDefinitionId:
+                  type: string
+                decisionDefinitionKey:
+                  type: string
+                kind:
+                  type: string
+                  enum:
+                    - process
+                    - decision
+                    - bpmn
+                    - dmn
+              additionalProperties:
+                nullable: true
+      responses:
+        "200":
+          description: Evaluate Starbase to Mission Control runtime bridge access
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  allowed:
+                    type: boolean
+                  reasonCode:
+                    type: string
+                  reason:
+                    type: string
+                  missingActions:
+                    type: array
+                    items:
+                      type: string
+                  projectId:
+                    type: string
+                    nullable: true
+                  fileId:
+                    type: string
+                    nullable: true
+                  engineId:
+                    type: string
+                    nullable: true
+                  targetId:
+                    type: string
+                    nullable: true
+                  lineage:
+                    type: object
+                    additionalProperties:
+                      nullable: true
+                  diagnostics:
+                    type: object
+                    properties:
+                      effectiveAccessUrl:
+                        type: string
+                      label:
+                        type: string
+                required:
+                  - allowed
+                  - reasonCode
+                  - reason
+                  - missingActions
+                  - projectId
+                  - fileId
+                  - engineId
+                  - targetId
+                  - lineage
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/admin/providers:
+    get:
+      operationId: getGitAdminProviders
+      tags:
+        - Starbase & Git
+      responses:
+        "200":
+          description: List admin git providers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    tenantId:
+                      type: string
+                      nullable: true
+                    name:
+                      type: string
+                    type:
+                      type: string
+                    baseUrl:
+                      type: string
+                    apiUrl:
+                      type: string
+                    customBaseUrl:
+                      type: string
+                      nullable: true
+                    customApiUrl:
+                      type: string
+                      nullable: true
+                    supportsOAuth:
+                      type: boolean
+                    supportsPAT:
+                      type: boolean
+                    isActive:
+                      type: boolean
+                    displayOrder:
+                      type: number
+                    createdAt:
+                      type: number
+                    updatedAt:
+                      type: number
+                    projectConnectionsCount:
+                      type: integer
+                      minimum: 0
+                    gitConnectionsCount:
+                      type: integer
+                      minimum: 0
+                    hasProjectConnections:
+                      type: boolean
+                    hasGitConnections:
+                      type: boolean
+                    configKey:
+                      type: string
+                      nullable: true
+                    sourceRef:
+                      type: string
+                      nullable: true
+                    ownershipMode:
+                      type: string
+                      enum:
+                        - manual
+                        - config_locked
+                        - config_warn
+                    driftStatus:
+                      type: string
+                      nullable: true
+                      enum:
+                        - in_sync
+                        - drifted
+                        - null
+                  required:
+                    - id
+                    - tenantId
+                    - name
+                    - type
+                    - baseUrl
+                    - apiUrl
+                    - customBaseUrl
+                    - customApiUrl
+                    - supportsOAuth
+                    - supportsPAT
+                    - isActive
+                    - displayOrder
+                    - createdAt
+                    - updatedAt
+                    - projectConnectionsCount
+                    - gitConnectionsCount
+                    - hasProjectConnections
+                    - hasGitConnections
+                    - configKey
+                    - sourceRef
+                    - ownershipMode
+                    - driftStatus
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/admin/providers/{id}:
+    put:
+      operationId: putGitAdminProvidersById
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isActive:
+                  type: boolean
+                customBaseUrl:
+                  type: string
+                  nullable: true
+                  format: uri
+                customApiUrl:
+                  type: string
+                  nullable: true
+                  format: uri
+                oauthClientId:
+                  type: string
+                  nullable: true
+                oauthClientSecret:
+                  type: string
+                  nullable: true
+                oauthScopes:
+                  type: string
+                  nullable: true
+                displayOrder:
+                  type: integer
+      responses:
+        "200":
+          description: Provider updated without OAuth client settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  tenantId:
+                    type: string
+                    nullable: true
+                  name:
+                    type: string
+                  type:
+                    type: string
+                  baseUrl:
+                    type: string
+                  apiUrl:
+                    type: string
+                  customBaseUrl:
+                    type: string
+                    nullable: true
+                  customApiUrl:
+                    type: string
+                    nullable: true
+                  supportsOAuth:
+                    type: boolean
+                  supportsPAT:
+                    type: boolean
+                  isActive:
+                    type: boolean
+                  displayOrder:
+                    type: number
+                  createdAt:
+                    type: number
+                  updatedAt:
+                    type: number
+                  configKey:
+                    type: string
+                    nullable: true
+                  sourceRef:
+                    type: string
+                    nullable: true
+                  ownershipMode:
+                    type: string
+                    enum:
+                      - manual
+                      - config_locked
+                      - config_warn
+                  driftStatus:
+                    type: string
+                    nullable: true
+                    enum:
+                      - in_sync
+                      - drifted
+                      - null
+                required:
+                  - id
+                  - tenantId
+                  - name
+                  - type
+                  - baseUrl
+                  - apiUrl
+                  - customBaseUrl
+                  - customApiUrl
+                  - supportsOAuth
+                  - supportsPAT
+                  - isActive
+                  - displayOrder
+                  - createdAt
+                  - updatedAt
+                  - configKey
+                  - sourceRef
+                  - ownershipMode
+                  - driftStatus
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/providers:
+    get:
+      operationId: getGitProviders
+      tags:
+        - Starbase & Git
+      responses:
+        "200":
+          description: List safe git provider metadata
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                    type:
+                      type: string
+                    baseUrl:
+                      type: string
+                    apiUrl:
+                      type: string
+                    supportsOAuth:
+                      type: boolean
+                    supportsPAT:
+                      type: boolean
+                  required:
+                    - id
+                    - name
+                    - type
+                    - baseUrl
+                    - apiUrl
+                    - supportsOAuth
+                    - supportsPAT
+                  additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/providers/{id}:
+    get:
+      operationId: getGitProvidersById
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Safe provider details without OAuth client configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  type:
+                    type: string
+                  baseUrl:
+                    type: string
+                  apiUrl:
+                    type: string
+                  supportsOAuth:
+                    type: boolean
+                  supportsPAT:
+                    type: boolean
+                  effectiveBaseUrl:
+                    type: string
+                  effectiveApiUrl:
+                    type: string
+                  isActive:
+                    type: boolean
+                required:
+                  - id
+                  - name
+                  - type
+                  - baseUrl
+                  - apiUrl
+                  - supportsOAuth
+                  - supportsPAT
+                  - effectiveBaseUrl
+                  - effectiveApiUrl
+                  - isActive
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/providers/{id}/repos:
+    get:
+      operationId: getGitProvidersByIdRepos
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: List sanitized repos for provider
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    fullName:
+                      type: string
+                    url:
+                      type: string
+                    isPrivate:
+                      type: boolean
+                  required:
+                    - name
+                    - fullName
+                    - url
+                    - isPrivate
+                  additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/credentials:
+    get:
+      operationId: getGitCredentials
+      tags:
+        - Starbase & Git
+      responses:
+        "200":
+          description: List redacted git credentials
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    userId:
+                      type: string
+                    providerId:
+                      type: string
+                    providerName:
+                      type: string
+                    providerType:
+                      type: string
+                    name:
+                      type: string
+                    authType:
+                      type: string
+                      enum:
+                        - pat
+                        - oauth
+                    providerUsername:
+                      type: string
+                    expiresAt:
+                      type: number
+                    scopes:
+                      type: string
+                    createdAt:
+                      type: number
+                    updatedAt:
+                      type: number
+                  required:
+                    - id
+                    - userId
+                    - providerId
+                    - providerName
+                    - providerType
+                    - authType
+                    - createdAt
+                    - updatedAt
+                  additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    post:
+      operationId: postGitCredentials
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                providerId:
+                  type: string
+                  minLength: 1
+                token:
+                  type: string
+                  minLength: 1
+                name:
+                  type: string
+              required:
+                - providerId
+                - token
+      responses:
+        "201":
+          description: Credential created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  userId:
+                    type: string
+                  providerId:
+                    type: string
+                  providerName:
+                    type: string
+                  providerType:
+                    type: string
+                  name:
+                    type: string
+                  authType:
+                    type: string
+                    enum:
+                      - pat
+                      - oauth
+                  providerUsername:
+                    type: string
+                  expiresAt:
+                    type: number
+                  scopes:
+                    type: string
+                  createdAt:
+                    type: number
+                  updatedAt:
+                    type: number
+                required:
+                  - id
+                  - userId
+                  - providerId
+                  - providerName
+                  - providerType
+                  - authType
+                  - createdAt
+                  - updatedAt
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/credentials/{providerId}:
+    get:
+      operationId: getGitCredentialsByProviderId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[a-zA-Z0-9_-]+$
+          required: true
+          name: providerId
+          in: path
+      responses:
+        "200":
+          description: Git credential metadata for provider
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  userId:
+                    type: string
+                  providerId:
+                    type: string
+                  providerName:
+                    type: string
+                  providerType:
+                    type: string
+                  name:
+                    type: string
+                  authType:
+                    type: string
+                    enum:
+                      - pat
+                      - oauth
+                  providerUsername:
+                    type: string
+                  expiresAt:
+                    type: number
+                  scopes:
+                    type: string
+                  createdAt:
+                    type: number
+                  updatedAt:
+                    type: number
+                required:
+                  - id
+                  - userId
+                  - providerId
+                  - providerName
+                  - providerType
+                  - authType
+                  - createdAt
+                  - updatedAt
+                additionalProperties: false
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    delete:
+      operationId: deleteGitCredentialsByProviderId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[a-zA-Z0-9_-]+$
+          required: true
+          name: providerId
+          in: path
+      responses:
+        "204":
+          description: Provider credentials deleted
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/credentials/{credentialId}:
+    patch:
+      operationId: patchGitCredentialsByCredentialId
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[a-zA-Z0-9_-]+$
+          required: true
+          name: credentialId
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RenameProjectRequest"
+      responses:
+        "200":
+          description: Credential updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                required:
+                  - success
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/credentials/{providerId}/validate:
+    get:
+      operationId: getGitCredentialsByProviderIdValidate
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[a-zA-Z0-9_-]+$
+          required: true
+          name: providerId
+          in: path
+      responses:
+        "200":
+          description: Credential validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                required:
+                  - valid
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/credentials/{credentialId}/namespaces:
+    get:
+      operationId: getGitCredentialsByCredentialIdNamespaces
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[a-zA-Z0-9_-]+$
+          required: true
+          name: credentialId
+          in: path
+      responses:
+        "200":
+          description: Available namespaces
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    type:
+                      type: string
+                      enum:
+                        - user
+                        - organization
+                    avatarUrl:
+                      type: string
+                  required:
+                    - name
+                    - type
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/clone:
+    post:
+      operationId: postGitClone
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                providerId:
+                  type: string
+                repoUrl:
+                  type: string
+                branch:
+                  type: string
+                projectName:
+                  type: string
+                conflictStrategy:
+                  type: string
+                  enum:
+                    - preferRemote
+                    - preferLocal
+              required:
+                - providerId
+                - repoUrl
+      responses:
+        "201":
+          description: Repository cloned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  projectId:
+                    type: string
+                  projectName:
+                    type: string
+                  filesImported:
+                    type: integer
+                    minimum: 0
+                  foldersCreated:
+                    type: integer
+                    minimum: 0
+                  repositoryId:
+                    type: string
+                required:
+                  - projectId
+                  - projectName
+                  - filesImported
+                  - foldersCreated
+                  - repositoryId
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/create-online:
+    post:
+      operationId: postGitCreateOnline
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectName:
+                  nullable: true
+                providerId:
+                  nullable: true
+                repositoryName:
+                  nullable: true
+                namespace:
+                  nullable: true
+                isPrivate:
+                  type: boolean
+                description:
+                  type: string
+                token:
+                  type: string
+                importFromEngine:
+                  type: object
+                  properties:
+                    enabled:
+                      type: boolean
+                    engineId:
+                      type: string
+      responses:
+        "201":
+          description: Online repo created without submitted credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateOnlineProjectResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/check-repo-exists:
+    post:
+      operationId: postGitCheckRepoExists
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                providerId:
+                  nullable: true
+                repositoryName:
+                  nullable: true
+                namespace:
+                  nullable: true
+                token:
+                  nullable: true
+      responses:
+        "200":
+          description: Check result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exists:
+                    type: boolean
+                  repository:
+                    type: object
+                    nullable: true
+                    properties:
+                      name:
+                        type: string
+                      fullName:
+                        type: string
+                      url:
+                        type: string
+                    required:
+                      - name
+                      - fullName
+                      - url
+                required:
+                  - exists
+                  - repository
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/repo-info:
+    post:
+      operationId: postGitRepoInfo
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                providerId:
+                  type: string
+                repoUrl:
+                  type: string
+              required:
+                - providerId
+                - repoUrl
+      responses:
+        "200":
+          description: Repository info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  fullName:
+                    type: string
+                  defaultBranch:
+                    type: string
+                  branches:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        isDefault:
+                          type: boolean
+                      required:
+                        - name
+                        - isDefault
+                required:
+                  - name
+                  - fullName
+                  - defaultBranch
+                  - branches
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/deployments:
+    get:
+      operationId: getGitDeployments
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: projectId
+          in: query
+      responses:
+        "200":
+          description: List git deployments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    projectId:
+                      type: string
+                    repositoryId:
+                      type: string
+                    commitSha:
+                      type: string
+                    commitMessage:
+                      type: string
+                      nullable: true
+                    tag:
+                      type: string
+                      nullable: true
+                    deployedBy:
+                      type: string
+                    deployedAt:
+                      type: number
+                    environment:
+                      type: string
+                      nullable: true
+                    status:
+                      type: string
+                    errorMessage:
+                      type: string
+                      nullable: true
+                    filesChanged:
+                      type: number
+                      nullable: true
+                    metadata:
+                      type: string
+                      nullable: true
+                  required:
+                    - id
+                    - projectId
+                    - repositoryId
+                    - commitSha
+                    - commitMessage
+                    - tag
+                    - deployedBy
+                    - deployedAt
+                    - environment
+                    - status
+                    - errorMessage
+                    - filesChanged
+                    - metadata
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/deployments/{id}:
+    get:
+      operationId: getGitDeploymentsById
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Deployment details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  projectId:
+                    type: string
+                  repositoryId:
+                    type: string
+                  commitSha:
+                    type: string
+                  commitMessage:
+                    type: string
+                    nullable: true
+                  tag:
+                    type: string
+                    nullable: true
+                  deployedBy:
+                    type: string
+                  deployedAt:
+                    type: number
+                  environment:
+                    type: string
+                    nullable: true
+                  status:
+                    type: string
+                  errorMessage:
+                    type: string
+                    nullable: true
+                  filesChanged:
+                    type: number
+                    nullable: true
+                  metadata:
+                    type: string
+                    nullable: true
+                required:
+                  - id
+                  - projectId
+                  - repositoryId
+                  - commitSha
+                  - commitMessage
+                  - tag
+                  - deployedBy
+                  - deployedAt
+                  - environment
+                  - status
+                  - errorMessage
+                  - filesChanged
+                  - metadata
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/projects/{projectId}/deployments:
+    get:
+      operationId: getGitProjectsByProjectIdDeployments
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: projectId
+          in: path
+      responses:
+        "200":
+          description: Deployments for project
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    projectId:
+                      type: string
+                    repositoryId:
+                      type: string
+                    commitSha:
+                      type: string
+                    commitMessage:
+                      type: string
+                      nullable: true
+                    tag:
+                      type: string
+                      nullable: true
+                    deployedBy:
+                      type: string
+                    deployedAt:
+                      type: number
+                    environment:
+                      type: string
+                      nullable: true
+                    status:
+                      type: string
+                    errorMessage:
+                      type: string
+                      nullable: true
+                    filesChanged:
+                      type: number
+                      nullable: true
+                    metadata:
+                      type: string
+                      nullable: true
+                  required:
+                    - id
+                    - projectId
+                    - repositoryId
+                    - commitSha
+                    - commitMessage
+                    - tag
+                    - deployedBy
+                    - deployedAt
+                    - environment
+                    - status
+                    - errorMessage
+                    - filesChanged
+                    - metadata
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/sync:
+    post:
+      operationId: postGitSync
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectId:
+                  type: string
+                  format: uuid
+                direction:
+                  type: string
+                  enum:
+                    - push
+                    - pull
+                    - both
+                  default: push
+                message:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+              required:
+                - projectId
+                - message
+      responses:
+        "200":
+          description: Sync started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  pushed:
+                    type: boolean
+                  pulled:
+                    type: boolean
+                  filesChanged:
+                    type: integer
+                    minimum: 0
+                  commitSha:
+                    type: string
+                  error:
+                    type: string
+                  isFirstSync:
+                    type: boolean
+                required:
+                  - success
+                  - pushed
+                  - pulled
+                  - filesChanged
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/sync/status:
+    get:
+      operationId: getGitSyncStatus
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: query
+      responses:
+        "200":
+          description: Sync status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hasLocalChanges:
+                    type: boolean
+                  hasRemoteChanges:
+                    type: boolean
+                  lastSyncAt:
+                    type: number
+                    nullable: true
+                  localCommitCount:
+                    type: integer
+                    minimum: 0
+                  remoteCommitCount:
+                    type: integer
+                    minimum: 0
+                required:
+                  - hasLocalChanges
+                  - hasRemoteChanges
+                  - lastSyncAt
+                  - localCommitCount
+                  - remoteCommitCount
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/locks/{lockId}/heartbeat:
+    put:
+      operationId: putGitLocksByLockIdHeartbeat
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: lockId
+          in: path
+      responses:
+        "200":
+          description: Lock heartbeat renewed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  lock:
+                    $ref: "#/components/schemas/LockResponse"
+                required:
+                  - success
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/locks/{fileId}/events:
+    get:
+      operationId: getGitLocksByFileIdEvents
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: fileId
+          in: path
+      responses:
+        "200":
+          description: SSE stream of lock and file events
+          content:
+            text/event-stream:
+              schema:
+                type: string
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/oauth/{providerId}/authorize:
+    get:
+      operationId: getGitOauthByProviderIdAuthorize
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[a-zA-Z0-9_-]+$
+          required: true
+          name: providerId
+          in: path
+      responses:
+        "200":
+          description: OAuth authorization URL and opaque state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authUrl:
+                    type: string
+                  state:
+                    type: string
+                required:
+                  - authUrl
+                  - state
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/oauth/{providerId}/authorize/redirect:
+    get:
+      operationId: getGitOauthByProviderIdAuthorizeRedirect
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[a-zA-Z0-9_-]+$
+          required: true
+          name: providerId
+          in: path
+      responses:
+        "302":
+          description: OAuth redirect
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/oauth/{providerId}/config:
+    get:
+      operationId: getGitOauthByProviderIdConfig
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[a-zA-Z0-9_-]+$
+          required: true
+          name: providerId
+          in: path
+      responses:
+        "200":
+          description: OAuth capability metadata without client configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  supportsOAuth:
+                    type: boolean
+                  isConfigured:
+                    type: boolean
+                  scopes:
+                    type: array
+                    items:
+                      type: string
+                required:
+                  - supportsOAuth
+                  - isConfigured
+                  - scopes
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/oauth/{providerId}/refresh:
+    post:
+      operationId: postGitOauthByProviderIdRefresh
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            pattern: ^[a-zA-Z0-9_-]+$
+          required: true
+          name: providerId
+          in: path
+      responses:
+        "200":
+          description: Token refreshed
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/oauth/authorize/redirect:
+    get:
+      operationId: getGitOauthAuthorizeRedirect
+      tags:
+        - Starbase & Git
+      responses:
+        "302":
+          description: Generic OAuth redirect
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/oauth/callback:
+    post:
+      operationId: postGitOauthCallback
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  minLength: 1
+                state:
+                  type: string
+                  minLength: 1
+              required:
+                - code
+                - state
+              additionalProperties: false
+      responses:
+        "200":
+          description: OAuth credential saved without token material
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  userId:
+                    type: string
+                  providerId:
+                    type: string
+                  providerName:
+                    type: string
+                  providerType:
+                    type: string
+                  name:
+                    type: string
+                  authType:
+                    type: string
+                    enum:
+                      - pat
+                      - oauth
+                  providerUsername:
+                    type: string
+                  expiresAt:
+                    type: number
+                  scopes:
+                    type: string
+                  createdAt:
+                    type: number
+                  updatedAt:
+                    type: number
+                required:
+                  - id
+                  - userId
+                  - providerId
+                  - providerName
+                  - providerType
+                  - authType
+                  - createdAt
+                  - updatedAt
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/project-connection:
+    get:
+      operationId: getGitProjectConnection
+      tags:
+        - Starbase & Git
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: projectId
+          in: query
+      responses:
+        "200":
+          description: Project connection state without a service token
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - type: object
+                    properties:
+                      connected:
+                        type: boolean
+                        enum:
+                          - false
+                    required:
+                      - connected
+                    additionalProperties: false
+                  - type: object
+                    properties:
+                      connected:
+                        type: boolean
+                        enum:
+                          - true
+                      providerId:
+                        type: string
+                      repositoryName:
+                        type: string
+                      namespace:
+                        type: string
+                        nullable: true
+                      defaultBranch:
+                        type: string
+                      remoteUrl:
+                        type: string
+                      hasToken:
+                        type: boolean
+                      lastValidatedAt:
+                        type: number
+                        nullable: true
+                      tokenScopeHint:
+                        type: string
+                        nullable: true
+                      connectedByUserId:
+                        type: string
+                        nullable: true
+                      lastSyncAt:
+                        type: number
+                        nullable: true
+                    required:
+                      - connected
+                      - providerId
+                      - repositoryName
+                      - namespace
+                      - defaultBranch
+                      - remoteUrl
+                      - hasToken
+                      - lastValidatedAt
+                      - tokenScopeHint
+                      - connectedByUserId
+                      - lastSyncAt
+                    additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    post:
+      operationId: postGitProjectConnection
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectId:
+                  type: string
+                  format: uuid
+                providerId:
+                  type: string
+                  minLength: 1
+                repositoryName:
+                  type: string
+                  minLength: 1
+                namespace:
+                  type: string
+                defaultBranch:
+                  type: string
+                  default: main
+                token:
+                  type: string
+                  minLength: 1
+              required:
+                - projectId
+                - providerId
+                - repositoryName
+                - token
+      responses:
+        "200":
+          description: Project connection established
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                  repoFullName:
+                    type: string
+                required:
+                  - success
+                  - repoFullName
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    delete:
+      operationId: deleteGitProjectConnection
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectId:
+                  type: string
+                  format: uuid
+              required:
+                - projectId
+      responses:
+        "200":
+          description: Project connection disconnected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                required:
+                  - success
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /git-api/project-connection/token:
+    put:
+      operationId: putGitProjectConnectionToken
+      tags:
+        - Starbase & Git
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                projectId:
+                  type: string
+                  format: uuid
+                token:
+                  type: string
+                  minLength: 1
+              required:
+                - projectId
+                - token
+      responses:
+        "200":
+          description: Connection token updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - true
+                required:
+                  - success
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Access token returned by the login endpoints, sent as `Authorization: Bearer <token>`."
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: Access token cookie set by the browser login flows. Mutating requests also need the XSRF header.
+  schemas:
+    AcquireLockRequest:
+      type: object
+      properties:
+        fileId:
+          type: string
+          format: uuid
+        force:
+          type: boolean
+        visibilityState:
+          type: string
+          enum:
+            - visible
+            - hidden
+        hasInteraction:
+          type: boolean
+      required:
+        - fileId
+    CloneRepositoryRequest:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        providerId:
+          type: string
+          format: uuid
+        remoteUrl:
+          type: string
+          format: uri
+        namespace:
+          type: string
+        conflictStrategy:
+          type: string
+          enum:
+            - preferRemote
+            - preferLocal
+      required:
+        - projectId
+        - providerId
+        - remoteUrl
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        fileId:
+          type: string
+        author:
+          type: string
+          nullable: true
+        message:
+          type: string
+        createdAt:
+          type: number
+      required:
+        - id
+        - fileId
+        - author
+        - message
+        - createdAt
+    CompareVersionsResponse:
+      type: object
+      properties:
+        versionA:
+          $ref: "#/components/schemas/Version"
+        versionB:
+          $ref: "#/components/schemas/Version"
+        diff:
+          type: string
+    CreateFileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        type:
+          type: string
+          enum:
+            - bpmn
+            - dmn
+        folderId:
+          type: string
+          nullable: true
+          format: uuid
+        xml:
+          type: string
+      required:
+        - name
+    CreateFolderRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        parentFolderId:
+          type: string
+          nullable: true
+          format: uuid
+      required:
+        - name
+    CreateOnlineProjectResponse:
+      type: object
+      properties:
+        project:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+          required:
+            - id
+            - name
+        repository:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            fullName:
+              type: string
+            url:
+              type: string
+            cloneUrl:
+              type: string
+            private:
+              type: boolean
+          required:
+            - id
+            - name
+            - fullName
+            - url
+            - cloneUrl
+            - private
+      required:
+        - project
+        - repository
+    CreateProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        importFromEngine:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            engineId:
+              type: string
+              minLength: 1
+      required:
+        - name
+    CreateProjectResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        ownerId:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+      required:
+        - id
+        - name
+        - ownerId
+        - createdAt
+        - updatedAt
+    DeployRequest:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        engineId:
+          type: string
+          minLength: 1
+        message:
+          type: string
+          minLength: 1
+          maxLength: 500
+        environment:
+          type: string
+        createTag:
+          type: boolean
+          default: false
+        tagName:
+          type: string
+      required:
+        - projectId
+        - message
+    Deployment:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        source:
+          type: string
+          nullable: true
+        deploymentTime:
+          type: string
+          nullable: true
+        tenantId:
+          type: string
+          nullable: true
+      required:
+        - id
+    DeploymentResponse:
+      type: object
+      properties:
+        deploymentId:
+          type: string
+        commitSha:
+          type: string
+        tag:
+          type: string
+        filesChanged:
+          type: number
+        vcsCommitId:
+          type: string
+      required:
+        - deploymentId
+        - commitSha
+        - filesChanged
+      additionalProperties: false
+    ExternalProjectEngineTarget:
+      type: object
+      properties:
+        id:
+          type: string
+        tenantId:
+          type: string
+          nullable: true
+        projectId:
+          type: string
+        projectName:
+          type: string
+          nullable: true
+        engineId:
+          type: string
+        engineName:
+          type: string
+          nullable: true
+        engineBaseUrl:
+          type: string
+          nullable: true
+        environment:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            color:
+              type: string
+            manualDeployAllowed:
+              type: boolean
+          required:
+            - id
+            - name
+            - color
+            - manualDeployAllowed
+        status:
+          type: string
+          enum:
+            - active
+            - disabled
+            - archived
+        source:
+          type: string
+          enum:
+            - manual
+            - legacy
+            - ci
+            - api
+            - import
+            - deployment_history
+            - external
+            - system
+            - automation
+            - config
+        sourceRef:
+          type: string
+          nullable: true
+        ownershipMode:
+          type: string
+          enum:
+            - manual
+            - config_locked
+            - config_warn
+        sourceHash:
+          type: string
+          nullable: true
+        lastAppliedAt:
+          type: number
+          nullable: true
+        driftStatus:
+          type: string
+          nullable: true
+        externalSystemId:
+          type: string
+          nullable: true
+        externalProjectId:
+          type: string
+          nullable: true
+        externalEngineId:
+          type: string
+          nullable: true
+        externalTargetId:
+          type: string
+          nullable: true
+        allowManualDeploy:
+          type: boolean
+        allowCiDeploy:
+          type: boolean
+        allowApiDeploy:
+          type: boolean
+        allowImport:
+          type: boolean
+        createdById:
+          type: string
+          nullable: true
+        approvedById:
+          type: string
+          nullable: true
+        approvalStatus:
+          type: string
+          enum:
+            - not_required
+            - pending
+            - approved
+            - rejected
+        approvedAt:
+          type: number
+          nullable: true
+        policyTags:
+          type: array
+          items:
+            type: string
+        diagnostics:
+          type: object
+          nullable: true
+          properties:
+            source:
+              type: string
+              enum:
+                - external_registration_api
+                - config_bundle
+                - manual
+                - ci
+                - api
+                - import
+                - system
+                - automation
+            owner:
+              type: string
+              minLength: 1
+              maxLength: 255
+            confidence:
+              type: string
+              enum:
+                - low
+                - medium
+                - high
+            externalSystemId:
+              type: string
+              minLength: 1
+              maxLength: 255
+            externalProjectId:
+              type: string
+              nullable: true
+              minLength: 1
+              maxLength: 255
+            externalEngineId:
+              type: string
+              nullable: true
+              minLength: 1
+              maxLength: 255
+            externalTargetId:
+              type: string
+              nullable: true
+              minLength: 1
+              maxLength: 255
+          additionalProperties: false
+        lastSeenAt:
+          type: number
+          nullable: true
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+      required:
+        - id
+        - projectId
+        - projectName
+        - engineId
+        - engineName
+        - engineBaseUrl
+        - environment
+        - status
+        - source
+        - sourceRef
+        - ownershipMode
+        - sourceHash
+        - lastAppliedAt
+        - driftStatus
+        - externalSystemId
+        - externalProjectId
+        - externalEngineId
+        - externalTargetId
+        - allowManualDeploy
+        - allowCiDeploy
+        - allowApiDeploy
+        - allowImport
+        - createdById
+        - approvedById
+        - approvalStatus
+        - approvedAt
+        - policyTags
+        - diagnostics
+        - lastSeenAt
+        - createdAt
+        - updatedAt
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        folderId:
+          type: string
+          nullable: true
+        name:
+          type: string
+        type:
+          type: string
+        xml:
+          type: string
+          nullable: true
+        bpmnProcessId:
+          type: string
+          nullable: true
+        dmnDecisionId:
+          type: string
+          nullable: true
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+      required:
+        - id
+        - projectId
+        - folderId
+        - name
+        - type
+        - xml
+        - createdAt
+        - updatedAt
+    Folder:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        parentFolderId:
+          type: string
+          nullable: true
+        name:
+          type: string
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+      required:
+        - id
+        - projectId
+        - parentFolderId
+        - name
+        - createdAt
+        - updatedAt
+    FolderDeletePreview:
+      type: object
+      properties:
+        folderCount:
+          type: number
+        fileCount:
+          type: number
+        filesByType:
+          type: object
+          properties:
+            bpmn:
+              type: number
+            dmn:
+              type: number
+            other:
+              type: number
+          required:
+            - bpmn
+            - dmn
+            - other
+        samplePaths:
+          type: array
+          items:
+            type: string
+          maxItems: 10
+      required:
+        - folderCount
+        - fileCount
+        - filesByType
+        - samplePaths
+    FolderSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        parentFolderId:
+          type: string
+          nullable: true
+      required:
+        - id
+        - name
+        - parentFolderId
+    InitRepositoryRequest:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        providerId:
+          type: string
+          format: uuid
+        remoteUrl:
+          type: string
+          format: uri
+        namespace:
+          type: string
+      required:
+        - projectId
+        - providerId
+        - remoteUrl
+    LockResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fileId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        acquiredAt:
+          type: number
+        lastInteractionAt:
+          type: number
+        expiresAt:
+          type: number
+        heartbeatAt:
+          type: number
+        visibilityState:
+          type: string
+          enum:
+            - visible
+            - hidden
+        visibilityChangedAt:
+          type: number
+        sessionStatus:
+          type: string
+          enum:
+            - active
+            - idle
+            - hidden
+        userName:
+          type: string
+      required:
+        - id
+        - fileId
+        - userId
+        - acquiredAt
+        - lastInteractionAt
+        - expiresAt
+        - heartbeatAt
+        - visibilityState
+        - visibilityChangedAt
+        - sessionStatus
+    ProjectContents:
+      type: object
+      properties:
+        breadcrumb:
+          type: array
+          items:
+            $ref: "#/components/schemas/Folder"
+          default: []
+        folders:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              parentFolderId:
+                type: string
+                nullable: true
+              createdBy:
+                type: string
+                nullable: true
+              updatedBy:
+                type: string
+                nullable: true
+              createdAt:
+                type: number
+              updatedAt:
+                type: number
+            required:
+              - id
+              - name
+              - parentFolderId
+              - createdAt
+              - updatedAt
+        files:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              type:
+                type: string
+                enum:
+                  - bpmn
+                  - dmn
+                  - form
+              createdBy:
+                type: string
+                nullable: true
+              updatedBy:
+                type: string
+                nullable: true
+              updatedAt:
+                type: number
+              createdAt:
+                type: number
+            required:
+              - id
+              - name
+              - type
+              - updatedAt
+              - createdAt
+      required:
+        - folders
+        - files
+    ProjectEngineAccessResponse:
+      type: object
+      properties:
+        accessedEngines:
+          type: array
+          items:
+            type: object
+            properties:
+              engineId:
+                type: string
+              engineName:
+                type: string
+              baseUrl:
+                type: string
+              deploymentIntegration:
+                type: string
+                enum:
+                  - enterpriseglue_proxy
+                  - direct_engine
+              environment:
+                type: object
+                nullable: true
+                properties:
+                  name:
+                    type: string
+                  color:
+                    type: string
+                    nullable: true
+                required:
+                  - name
+                  - color
+              deploymentTarget:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+                  source:
+                    type: string
+                  sourceRef:
+                    type: string
+                    nullable: true
+                  allowManualDeploy:
+                    type: boolean
+                  allowCiDeploy:
+                    type: boolean
+                  allowApiDeploy:
+                    type: boolean
+                  allowImport:
+                    type: boolean
+                  lastSeenAt:
+                    type: number
+                    nullable: true
+                  createdAt:
+                    type: number
+                  updatedAt:
+                    type: number
+                required:
+                  - id
+                  - status
+                  - source
+                  - sourceRef
+                  - allowManualDeploy
+                  - allowCiDeploy
+                  - allowApiDeploy
+                  - allowImport
+                  - lastSeenAt
+                  - createdAt
+                  - updatedAt
+              manualDeployAllowed:
+                type: boolean
+              manualDeployDeniedReasons:
+                type: array
+                items:
+                  type: string
+              ciDeployAllowed:
+                type: boolean
+              ciDeployDeniedReasons:
+                type: array
+                items:
+                  type: string
+              deploymentEligibility:
+                type: object
+                properties:
+                  diagnosticsVisible:
+                    type: boolean
+                  manual:
+                    type: object
+                    properties:
+                      allowed:
+                        type: boolean
+                      reasons:
+                        type: array
+                        items:
+                          type: string
+                      checks:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            allowed:
+                              type: boolean
+                            reason:
+                              type: string
+                            remediation:
+                              type: string
+                          required:
+                            - id
+                            - allowed
+                            - reason
+                    required:
+                      - allowed
+                      - reasons
+                  ci:
+                    type: object
+                    properties:
+                      allowed:
+                        type: boolean
+                      reasons:
+                        type: array
+                        items:
+                          type: string
+                      checks:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                            allowed:
+                              type: boolean
+                            reason:
+                              type: string
+                            remediation:
+                              type: string
+                          required:
+                            - id
+                            - allowed
+                            - reason
+                    required:
+                      - allowed
+                      - reasons
+                required:
+                  - manual
+              health:
+                type: object
+                nullable: true
+                properties:
+                  status:
+                    type: string
+                  latencyMs:
+                    type: number
+                    nullable: true
+                required:
+                  - status
+                  - latencyMs
+              grantedAt:
+                type: number
+              isLegacy:
+                type: boolean
+            required:
+              - engineId
+              - engineName
+              - baseUrl
+              - environment
+              - health
+              - grantedAt
+        pendingRequests:
+          type: array
+          items:
+            type: object
+            properties:
+              requestId:
+                type: string
+              engineId:
+                type: string
+              engineName:
+                type: string
+              requestedAt:
+                type: number
+            required:
+              - requestId
+              - engineId
+              - engineName
+              - requestedAt
+        availableEngines:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+            required:
+              - id
+              - name
+      required:
+        - accessedEngines
+        - pendingRequests
+        - availableEngines
+    ProjectImportPreviewRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+          minLength: 1
+      required:
+        - engineId
+    ProjectImportPreviewResponse:
+      type: object
+      properties:
+        engineId:
+          type: string
+        allowed:
+          type: boolean
+          enum:
+            - true
+        targetAction:
+          type: string
+          enum:
+            - create_import_target
+        counts:
+          type: object
+          properties:
+            bpmn:
+              type: integer
+              minimum: 0
+            dmn:
+              type: integer
+              minimum: 0
+          required:
+            - bpmn
+            - dmn
+        files:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              type:
+                type: string
+                enum:
+                  - bpmn
+                  - dmn
+              bpmnProcessId:
+                type: string
+                nullable: true
+              dmnDecisionId:
+                type: string
+                nullable: true
+            required:
+              - name
+              - type
+              - bpmnProcessId
+              - dmnDecisionId
+        warnings:
+          type: array
+          items:
+            type: string
+      required:
+        - engineId
+        - allowed
+        - targetAction
+        - counts
+        - files
+        - warnings
+    ProjectOverviewList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+          createdAt:
+            type: number
+          foldersCount:
+            type: integer
+            minimum: 0
+          filesCount:
+            type: integer
+            minimum: 0
+          gitUrl:
+            type: string
+            nullable: true
+          gitProviderType:
+            type: string
+            nullable: true
+          gitSyncStatus:
+            type: number
+            nullable: true
+          members:
+            type: array
+            items:
+              type: object
+              properties:
+                userId:
+                  type: string
+                firstName:
+                  type: string
+                  nullable: true
+                lastName:
+                  type: string
+                  nullable: true
+                role:
+                  type: string
+                roles:
+                  type: array
+                  items:
+                    type: string
+                deployAllowed:
+                  type: boolean
+                  nullable: true
+              required:
+                - userId
+                - firstName
+                - lastName
+                - role
+              additionalProperties:
+                nullable: true
+        required:
+          - id
+          - name
+          - createdAt
+        additionalProperties:
+          nullable: true
+    RenameProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+      required:
+        - name
+    Repository:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        providerId:
+          type: string
+        connectedByUserId:
+          type: string
+          nullable: true
+        remoteUrl:
+          type: string
+        namespace:
+          type: string
+          nullable: true
+        repositoryName:
+          type: string
+        defaultBranch:
+          type: string
+        lastCommitSha:
+          type: string
+          nullable: true
+        lastSyncAt:
+          type: number
+          nullable: true
+        clonePath:
+          type: string
+          nullable: true
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+      required:
+        - id
+        - projectId
+        - providerId
+        - connectedByUserId
+        - remoteUrl
+        - namespace
+        - repositoryName
+        - defaultBranch
+        - lastCommitSha
+        - lastSyncAt
+        - clonePath
+        - createdAt
+        - updatedAt
+    RollbackRequest:
+      type: object
+      properties:
+        projectId:
+          type: string
+          format: uuid
+        commitSha:
+          type: string
+          minLength: 7
+          maxLength: 40
+      required:
+        - projectId
+        - commitSha
+    UpdateFileMetadataRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        folderId:
+          type: string
+          nullable: true
+          format: uuid
+    UpdateFileXmlRequest:
+      type: object
+      properties:
+        xml:
+          type: string
+        prevUpdatedAt:
+          type: number
+      required:
+        - xml
+    UpdateFolderRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        parentFolderId:
+          type: string
+          nullable: true
+          format: uuid
+    Version:
+      type: object
+      properties:
+        id:
+          type: string
+        fileId:
+          type: string
+        author:
+          type: string
+          nullable: true
+        message:
+          type: string
+          nullable: true
+        xml:
+          type: string
+        createdAt:
+          type: number
+      required:
+        - id
+        - fileId
+        - author
+        - message
+        - xml
+        - createdAt
+  parameters: {}

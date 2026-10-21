@@ -1,0 +1,2713 @@
+openapi: 3.0.3
+info:
+  title: EnterpriseGlue SCIM API
+  version: 0.1.0
+  description: |-
+    SCIM 2.0 provisioning endpoints for external identity providers, authenticated with directory credentials.
+
+    Tenant-scoped routes under `/api/t/{tenantSlug}/...` are also served at the legacy alias `/t/{tenantSlug}/api/...`; only the first form is documented.
+servers:
+  - url: /
+    description: This EnterpriseGlue deployment
+tags:
+  - name: SCIM
+    description: SCIM 2.0 provisioning endpoints for external identity providers, authenticated with directory credentials.
+paths:
+  /scim/v2/{directoryKey}/oauth/token:
+    post:
+      operationId: postScimV2ByDirectoryKeyOauthToken
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                  enum:
+                    - client_credentials
+                scope:
+                  type: string
+                  maxLength: 512
+                client_id:
+                  type: string
+                  minLength: 8
+                  maxLength: 255
+                client_secret:
+                  type: string
+                  minLength: 32
+                  maxLength: 4096
+              required:
+                - grant_type
+              additionalProperties: false
+      responses:
+        "200":
+          description: Short-lived directory-scoped SCIM access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    minLength: 32
+                    maxLength: 8192
+                  token_type:
+                    type: string
+                    enum:
+                      - Bearer
+                  expires_in:
+                    type: integer
+                    minimum: 60
+                    maximum: 3600
+                  scope:
+                    type: string
+                    enum:
+                      - scim
+                required:
+                  - access_token
+                  - token_type
+                  - expires_in
+                  - scope
+                additionalProperties: false
+        "400":
+          description: Invalid OAuth request or scope
+        "401":
+          description: Invalid or revoked client credential
+      security:
+        - ScimOAuthClient: []
+  /scim/v2/{directoryKey}/ServiceProviderConfig:
+    get:
+      operationId: getScimV2ByDirectoryKeyServiceProviderConfig
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+      responses:
+        "200":
+          description: SCIM service-provider capabilities
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                properties:
+                  schemas:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig
+                    minItems: 1
+                    maxItems: 1
+                  documentationUri:
+                    type: string
+                    format: uri
+                  patch:
+                    type: object
+                    properties:
+                      supported:
+                        type: boolean
+                    required:
+                      - supported
+                    additionalProperties: false
+                  bulk:
+                    type: object
+                    properties:
+                      supported:
+                        type: boolean
+                      maxOperations:
+                        type: integer
+                        minimum: 0
+                      maxPayloadSize:
+                        type: integer
+                        minimum: 0
+                    required:
+                      - supported
+                      - maxOperations
+                      - maxPayloadSize
+                    additionalProperties: false
+                  filter:
+                    type: object
+                    properties:
+                      supported:
+                        type: boolean
+                      maxResults:
+                        type: integer
+                        minimum: 0
+                        exclusiveMinimum: true
+                    required:
+                      - supported
+                      - maxResults
+                    additionalProperties: false
+                  changePassword:
+                    type: object
+                    properties:
+                      supported:
+                        type: boolean
+                    required:
+                      - supported
+                    additionalProperties: false
+                  sort:
+                    type: object
+                    properties:
+                      supported:
+                        type: boolean
+                    required:
+                      - supported
+                    additionalProperties: false
+                  etag:
+                    type: object
+                    properties:
+                      supported:
+                        type: boolean
+                    required:
+                      - supported
+                    additionalProperties: false
+                  authenticationSchemes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum:
+                            - oauth2
+                            - oauthbearertoken
+                        name:
+                          type: string
+                          minLength: 1
+                          maxLength: 128
+                        description:
+                          type: string
+                          minLength: 1
+                          maxLength: 1000
+                        specUri:
+                          type: string
+                          format: uri
+                        primary:
+                          type: boolean
+                      required:
+                        - type
+                        - name
+                        - description
+                        - specUri
+                        - primary
+                      additionalProperties: false
+                    minItems: 1
+                  meta:
+                    type: object
+                    properties:
+                      resourceType:
+                        type: string
+                        enum:
+                          - ServiceProviderConfig
+                      location:
+                        type: string
+                        format: uri
+                    required:
+                      - resourceType
+                      - location
+                    additionalProperties: false
+                required:
+                  - schemas
+                  - documentationUri
+                  - patch
+                  - bulk
+                  - filter
+                  - changePassword
+                  - sort
+                  - etag
+                  - authenticationSchemes
+                  - meta
+                additionalProperties: false
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+  /scim/v2/{directoryKey}/Bulk:
+    post:
+      operationId: postScimV2ByDirectoryKeyBulk
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              type: object
+              properties:
+                schemas:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - urn:ietf:params:scim:api:messages:2.0:BulkRequest
+                  minItems: 1
+                  maxItems: 1
+                failOnErrors:
+                  type: integer
+                  minimum: 0
+                  maximum: 50
+                Operations:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      method:
+                        type: string
+                        enum:
+                          - POST
+                          - PUT
+                          - PATCH
+                          - DELETE
+                      bulkId:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      version:
+                        type: string
+                        pattern: ^W\/"[A-Za-z0-9._:-]+"$
+                      path:
+                        type: string
+                        minLength: 1
+                        maxLength: 1000
+                        pattern: ^\/(?:Users|Groups)(?:\/[^/?#]+)?$
+                      data:
+                        nullable: true
+                    required:
+                      - method
+                      - path
+                    additionalProperties: false
+                  minItems: 1
+                  maxItems: 50
+              required:
+                - schemas
+                - Operations
+              additionalProperties: false
+      responses:
+        "200":
+          description: Bounded SCIM Bulk operation results
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                properties:
+                  schemas:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - urn:ietf:params:scim:api:messages:2.0:BulkResponse
+                    minItems: 1
+                    maxItems: 1
+                  Operations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        method:
+                          type: string
+                          enum:
+                            - POST
+                            - PUT
+                            - PATCH
+                            - DELETE
+                        bulkId:
+                          type: string
+                          minLength: 1
+                          maxLength: 255
+                        location:
+                          type: string
+                          format: uri
+                        version:
+                          type: string
+                          pattern: ^W\/"[A-Za-z0-9._:-]+"$
+                        status:
+                          type: string
+                          pattern: ^[1-5][0-9]{2}$
+                        response:
+                          $ref: "#/components/schemas/ScimError"
+                      required:
+                        - method
+                        - status
+                      additionalProperties: false
+                    maxItems: 50
+                required:
+                  - schemas
+                  - Operations
+                additionalProperties: false
+        "400":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "413":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+  /scim/v2/{directoryKey}/Schemas:
+    get:
+      operationId: getScimV2ByDirectoryKeySchemas
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+      responses:
+        "200":
+          description: SCIM core schemas
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                properties:
+                  schemas:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - urn:ietf:params:scim:api:messages:2.0:ListResponse
+                    minItems: 1
+                    maxItems: 1
+                  totalResults:
+                    type: integer
+                    minimum: 0
+                  startIndex:
+                    type: integer
+                    minimum: 1
+                  itemsPerPage:
+                    type: integer
+                    minimum: 0
+                  Resources:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        schemas:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - urn:ietf:params:scim:schemas:core:2.0:Schema
+                          minItems: 1
+                          maxItems: 1
+                        id:
+                          type: string
+                          minLength: 1
+                          maxLength: 512
+                        name:
+                          type: string
+                          minLength: 1
+                          maxLength: 255
+                        description:
+                          type: string
+                          maxLength: 1000
+                        attributes:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                minLength: 1
+                                maxLength: 255
+                              type:
+                                type: string
+                                enum:
+                                  - string
+                                  - boolean
+                                  - decimal
+                                  - integer
+                                  - dateTime
+                                  - reference
+                                  - complex
+                              multiValued:
+                                type: boolean
+                              description:
+                                type: string
+                                maxLength: 1000
+                              required:
+                                type: boolean
+                              caseExact:
+                                type: boolean
+                              mutability:
+                                type: string
+                                enum:
+                                  - readOnly
+                                  - readWrite
+                                  - immutable
+                                  - writeOnly
+                              returned:
+                                type: string
+                                enum:
+                                  - always
+                                  - never
+                                  - default
+                                  - request
+                              uniqueness:
+                                type: string
+                                enum:
+                                  - none
+                                  - server
+                                  - global
+                              canonicalValues:
+                                type: array
+                                items:
+                                  type: string
+                              referenceTypes:
+                                type: array
+                                items:
+                                  type: string
+                              subAttributes:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    name:
+                                      type: string
+                                      minLength: 1
+                                      maxLength: 255
+                                    type:
+                                      type: string
+                                      enum:
+                                        - string
+                                        - boolean
+                                        - decimal
+                                        - integer
+                                        - dateTime
+                                        - reference
+                                        - complex
+                                    multiValued:
+                                      type: boolean
+                                    description:
+                                      type: string
+                                      maxLength: 1000
+                                    required:
+                                      type: boolean
+                                    caseExact:
+                                      type: boolean
+                                    mutability:
+                                      type: string
+                                      enum:
+                                        - readOnly
+                                        - readWrite
+                                        - immutable
+                                        - writeOnly
+                                    returned:
+                                      type: string
+                                      enum:
+                                        - always
+                                        - never
+                                        - default
+                                        - request
+                                    uniqueness:
+                                      type: string
+                                      enum:
+                                        - none
+                                        - server
+                                        - global
+                                    canonicalValues:
+                                      type: array
+                                      items:
+                                        type: string
+                                    referenceTypes:
+                                      type: array
+                                      items:
+                                        type: string
+                                  required:
+                                    - name
+                                    - type
+                                    - multiValued
+                                    - description
+                                    - required
+                                    - caseExact
+                                    - mutability
+                                    - returned
+                                    - uniqueness
+                                  additionalProperties: false
+                                maxItems: 100
+                            required:
+                              - name
+                              - type
+                              - multiValued
+                              - description
+                              - required
+                              - caseExact
+                              - mutability
+                              - returned
+                              - uniqueness
+                            additionalProperties: false
+                        meta:
+                          type: object
+                          properties:
+                            resourceType:
+                              type: string
+                              enum:
+                                - Schema
+                            location:
+                              type: string
+                              format: uri
+                          required:
+                            - resourceType
+                            - location
+                          additionalProperties: false
+                      required:
+                        - schemas
+                        - id
+                        - name
+                        - description
+                        - attributes
+                        - meta
+                      additionalProperties: false
+                required:
+                  - schemas
+                  - totalResults
+                  - startIndex
+                  - itemsPerPage
+                  - Resources
+                additionalProperties: false
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+  /scim/v2/{directoryKey}/Schemas/{schemaId}:
+    get:
+      operationId: getScimV2ByDirectoryKeySchemasBySchemaId
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 512
+          required: true
+          name: schemaId
+          in: path
+      responses:
+        "200":
+          description: SCIM schema
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                properties:
+                  schemas:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - urn:ietf:params:scim:schemas:core:2.0:Schema
+                    minItems: 1
+                    maxItems: 1
+                  id:
+                    type: string
+                    minLength: 1
+                    maxLength: 512
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                  description:
+                    type: string
+                    maxLength: 1000
+                  attributes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          minLength: 1
+                          maxLength: 255
+                        type:
+                          type: string
+                          enum:
+                            - string
+                            - boolean
+                            - decimal
+                            - integer
+                            - dateTime
+                            - reference
+                            - complex
+                        multiValued:
+                          type: boolean
+                        description:
+                          type: string
+                          maxLength: 1000
+                        required:
+                          type: boolean
+                        caseExact:
+                          type: boolean
+                        mutability:
+                          type: string
+                          enum:
+                            - readOnly
+                            - readWrite
+                            - immutable
+                            - writeOnly
+                        returned:
+                          type: string
+                          enum:
+                            - always
+                            - never
+                            - default
+                            - request
+                        uniqueness:
+                          type: string
+                          enum:
+                            - none
+                            - server
+                            - global
+                        canonicalValues:
+                          type: array
+                          items:
+                            type: string
+                        referenceTypes:
+                          type: array
+                          items:
+                            type: string
+                        subAttributes:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                minLength: 1
+                                maxLength: 255
+                              type:
+                                type: string
+                                enum:
+                                  - string
+                                  - boolean
+                                  - decimal
+                                  - integer
+                                  - dateTime
+                                  - reference
+                                  - complex
+                              multiValued:
+                                type: boolean
+                              description:
+                                type: string
+                                maxLength: 1000
+                              required:
+                                type: boolean
+                              caseExact:
+                                type: boolean
+                              mutability:
+                                type: string
+                                enum:
+                                  - readOnly
+                                  - readWrite
+                                  - immutable
+                                  - writeOnly
+                              returned:
+                                type: string
+                                enum:
+                                  - always
+                                  - never
+                                  - default
+                                  - request
+                              uniqueness:
+                                type: string
+                                enum:
+                                  - none
+                                  - server
+                                  - global
+                              canonicalValues:
+                                type: array
+                                items:
+                                  type: string
+                              referenceTypes:
+                                type: array
+                                items:
+                                  type: string
+                            required:
+                              - name
+                              - type
+                              - multiValued
+                              - description
+                              - required
+                              - caseExact
+                              - mutability
+                              - returned
+                              - uniqueness
+                            additionalProperties: false
+                          maxItems: 100
+                      required:
+                        - name
+                        - type
+                        - multiValued
+                        - description
+                        - required
+                        - caseExact
+                        - mutability
+                        - returned
+                        - uniqueness
+                      additionalProperties: false
+                  meta:
+                    type: object
+                    properties:
+                      resourceType:
+                        type: string
+                        enum:
+                          - Schema
+                      location:
+                        type: string
+                        format: uri
+                    required:
+                      - resourceType
+                      - location
+                    additionalProperties: false
+                required:
+                  - schemas
+                  - id
+                  - name
+                  - description
+                  - attributes
+                  - meta
+                additionalProperties: false
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "404":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+  /scim/v2/{directoryKey}/ResourceTypes:
+    get:
+      operationId: getScimV2ByDirectoryKeyResourceTypes
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+      responses:
+        "200":
+          description: SCIM resource types
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                properties:
+                  schemas:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - urn:ietf:params:scim:api:messages:2.0:ListResponse
+                    minItems: 1
+                    maxItems: 1
+                  totalResults:
+                    type: integer
+                    minimum: 0
+                  startIndex:
+                    type: integer
+                    minimum: 1
+                  itemsPerPage:
+                    type: integer
+                    minimum: 0
+                  Resources:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        schemas:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - urn:ietf:params:scim:schemas:core:2.0:ResourceType
+                          minItems: 1
+                          maxItems: 1
+                        id:
+                          type: string
+                          enum:
+                            - User
+                            - Group
+                        name:
+                          type: string
+                          enum:
+                            - User
+                            - Group
+                        endpoint:
+                          type: string
+                          enum:
+                            - /Users
+                            - /Groups
+                        description:
+                          type: string
+                          maxLength: 1000
+                        schema:
+                          type: string
+                          enum:
+                            - urn:ietf:params:scim:schemas:core:2.0:User
+                            - urn:ietf:params:scim:schemas:core:2.0:Group
+                        schemaExtensions:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              schema:
+                                type: string
+                                minLength: 1
+                              required:
+                                type: boolean
+                            required:
+                              - schema
+                              - required
+                            additionalProperties: false
+                          default: []
+                        meta:
+                          type: object
+                          properties:
+                            resourceType:
+                              type: string
+                              enum:
+                                - ResourceType
+                            location:
+                              type: string
+                              format: uri
+                          required:
+                            - resourceType
+                            - location
+                          additionalProperties: false
+                      required:
+                        - schemas
+                        - id
+                        - name
+                        - endpoint
+                        - description
+                        - schema
+                        - meta
+                      additionalProperties: false
+                required:
+                  - schemas
+                  - totalResults
+                  - startIndex
+                  - itemsPerPage
+                  - Resources
+                additionalProperties: false
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+  /scim/v2/{directoryKey}/ResourceTypes/{resourceType}:
+    get:
+      operationId: getScimV2ByDirectoryKeyResourceTypesByResourceType
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            enum:
+              - User
+              - Group
+          required: true
+          name: resourceType
+          in: path
+      responses:
+        "200":
+          description: SCIM resource type
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                properties:
+                  schemas:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - urn:ietf:params:scim:schemas:core:2.0:ResourceType
+                    minItems: 1
+                    maxItems: 1
+                  id:
+                    type: string
+                    enum:
+                      - User
+                      - Group
+                  name:
+                    type: string
+                    enum:
+                      - User
+                      - Group
+                  endpoint:
+                    type: string
+                    enum:
+                      - /Users
+                      - /Groups
+                  description:
+                    type: string
+                    maxLength: 1000
+                  schema:
+                    type: string
+                    enum:
+                      - urn:ietf:params:scim:schemas:core:2.0:User
+                      - urn:ietf:params:scim:schemas:core:2.0:Group
+                  schemaExtensions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        schema:
+                          type: string
+                          minLength: 1
+                        required:
+                          type: boolean
+                      required:
+                        - schema
+                        - required
+                      additionalProperties: false
+                    default: []
+                  meta:
+                    type: object
+                    properties:
+                      resourceType:
+                        type: string
+                        enum:
+                          - ResourceType
+                      location:
+                        type: string
+                        format: uri
+                    required:
+                      - resourceType
+                      - location
+                    additionalProperties: false
+                required:
+                  - schemas
+                  - id
+                  - name
+                  - endpoint
+                  - description
+                  - schema
+                  - meta
+                additionalProperties: false
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "404":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+  /scim/v2/{directoryKey}/Users:
+    get:
+      operationId: getScimV2ByDirectoryKeyUsers
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 2000
+          required: false
+          name: filter
+          in: query
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 1000000
+            default: 1
+          required: false
+          name: startIndex
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+            maximum: 200
+            default: 100
+          required: false
+          name: count
+          in: query
+        - schema:
+            type: string
+            maxLength: 2000
+          required: false
+          name: attributes
+          in: query
+        - schema:
+            type: string
+            maxLength: 2000
+          required: false
+          name: excludedAttributes
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - ascending
+              - descending
+            default: ascending
+          required: false
+          name: sortOrder
+          in: query
+      responses:
+        "200":
+          description: Filtered and paginated SCIM users
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                properties:
+                  schemas:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - urn:ietf:params:scim:api:messages:2.0:ListResponse
+                    minItems: 1
+                    maxItems: 1
+                  totalResults:
+                    type: integer
+                    minimum: 0
+                  startIndex:
+                    type: integer
+                    minimum: 1
+                  itemsPerPage:
+                    type: integer
+                    minimum: 0
+                  Resources:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ScimUser"
+                required:
+                  - schemas
+                  - totalResults
+                  - startIndex
+                  - itemsPerPage
+                  - Resources
+                additionalProperties: false
+        "400":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+    post:
+      operationId: postScimV2ByDirectoryKeyUsers
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              type: object
+              properties:
+                schemas:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  maxItems: 8
+                externalId:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                userName:
+                  type: string
+                  minLength: 1
+                  maxLength: 320
+                name:
+                  type: object
+                  properties:
+                    formatted:
+                      type: string
+                      maxLength: 512
+                    familyName:
+                      type: string
+                      maxLength: 255
+                    givenName:
+                      type: string
+                      maxLength: 255
+                    middleName:
+                      type: string
+                      maxLength: 255
+                    honorificPrefix:
+                      type: string
+                      maxLength: 128
+                    honorificSuffix:
+                      type: string
+                      maxLength: 128
+                  additionalProperties: false
+                displayName:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                nickName:
+                  type: string
+                  maxLength: 255
+                profileUrl:
+                  type: string
+                  maxLength: 2048
+                  format: uri
+                title:
+                  type: string
+                  maxLength: 255
+                userType:
+                  type: string
+                  maxLength: 128
+                preferredLanguage:
+                  type: string
+                  maxLength: 35
+                locale:
+                  type: string
+                  maxLength: 35
+                timezone:
+                  type: string
+                  maxLength: 128
+                password:
+                  type: string
+                  maxLength: 4096
+                active:
+                  type: boolean
+                  default: true
+                emails:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      value:
+                        type: string
+                        maxLength: 320
+                        format: email
+                      display:
+                        type: string
+                        maxLength: 320
+                      type:
+                        type: string
+                        maxLength: 64
+                      primary:
+                        type: boolean
+                    required:
+                      - value
+                    additionalProperties: false
+                  maxItems: 20
+              required:
+                - schemas
+                - userName
+              additionalProperties: false
+      responses:
+        "201":
+          description: SCIM user created
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+            ETag:
+              schema:
+                type: string
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimUser"
+        "400":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "409":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+  /scim/v2/{directoryKey}/Users/{id}:
+    get:
+      operationId: getScimV2ByDirectoryKeyUsersById
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: SCIM user
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimUser"
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "404":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+    put:
+      operationId: putScimV2ByDirectoryKeyUsersById
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+            pattern: ^W\/"[A-Za-z0-9._:-]+"$
+          required: false
+          name: if-match
+          in: header
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              type: object
+              properties:
+                schemas:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  maxItems: 8
+                externalId:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                userName:
+                  type: string
+                  minLength: 1
+                  maxLength: 320
+                name:
+                  type: object
+                  properties:
+                    formatted:
+                      type: string
+                      maxLength: 512
+                    familyName:
+                      type: string
+                      maxLength: 255
+                    givenName:
+                      type: string
+                      maxLength: 255
+                    middleName:
+                      type: string
+                      maxLength: 255
+                    honorificPrefix:
+                      type: string
+                      maxLength: 128
+                    honorificSuffix:
+                      type: string
+                      maxLength: 128
+                  additionalProperties: false
+                displayName:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                nickName:
+                  type: string
+                  maxLength: 255
+                profileUrl:
+                  type: string
+                  maxLength: 2048
+                  format: uri
+                title:
+                  type: string
+                  maxLength: 255
+                userType:
+                  type: string
+                  maxLength: 128
+                preferredLanguage:
+                  type: string
+                  maxLength: 35
+                locale:
+                  type: string
+                  maxLength: 35
+                timezone:
+                  type: string
+                  maxLength: 128
+                password:
+                  type: string
+                  maxLength: 4096
+                active:
+                  type: boolean
+                  default: true
+                emails:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      value:
+                        type: string
+                        maxLength: 320
+                        format: email
+                      display:
+                        type: string
+                        maxLength: 320
+                      type:
+                        type: string
+                        maxLength: 64
+                      primary:
+                        type: boolean
+                    required:
+                      - value
+                    additionalProperties: false
+                  maxItems: 20
+              required:
+                - schemas
+                - userName
+              additionalProperties: false
+      responses:
+        "200":
+          description: SCIM user replaced
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimUser"
+        "400":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "404":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "409":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "412":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+    patch:
+      operationId: patchScimV2ByDirectoryKeyUsersById
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+            pattern: ^W\/"[A-Za-z0-9._:-]+"$
+          required: false
+          name: if-match
+          in: header
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              type: object
+              properties:
+                schemas:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - urn:ietf:params:scim:api:messages:2.0:PatchOp
+                  minItems: 1
+                  maxItems: 1
+                Operations:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      op:
+                        type: string
+                      path:
+                        type: string
+                        minLength: 1
+                        maxLength: 1000
+                      value:
+                        anyOf:
+                          - type: string
+                            maxLength: 4096
+                          - type: number
+                          - type: boolean
+                          - nullable: true
+                          - type: array
+                            items:
+                              anyOf:
+                                - type: string
+                                  maxLength: 4096
+                                - type: number
+                                - type: boolean
+                                - nullable: true
+                            maxItems: 10000
+                          - type: object
+                            additionalProperties:
+                              anyOf:
+                                - type: string
+                                  maxLength: 4096
+                                - type: number
+                                - type: boolean
+                                - nullable: true
+                          - type: array
+                            items:
+                              type: object
+                              additionalProperties:
+                                anyOf:
+                                  - type: string
+                                    maxLength: 4096
+                                  - type: number
+                                  - type: boolean
+                                  - nullable: true
+                            maxItems: 10000
+                          - type: object
+                            additionalProperties:
+                              anyOf:
+                                - type: string
+                                  maxLength: 4096
+                                - type: number
+                                - type: boolean
+                                - nullable: true
+                                - type: array
+                                  items:
+                                    anyOf:
+                                      - type: string
+                                        maxLength: 4096
+                                      - type: number
+                                      - type: boolean
+                                      - nullable: true
+                                  maxItems: 10000
+                                - type: object
+                                  additionalProperties:
+                                    anyOf:
+                                      - type: string
+                                        maxLength: 4096
+                                      - type: number
+                                      - type: boolean
+                                      - nullable: true
+                                - type: array
+                                  items:
+                                    type: object
+                                    additionalProperties:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 4096
+                                        - type: number
+                                        - type: boolean
+                                        - nullable: true
+                                  maxItems: 10000
+                          - type: array
+                            items:
+                              type: object
+                              additionalProperties:
+                                anyOf:
+                                  - type: string
+                                    maxLength: 4096
+                                  - type: number
+                                  - type: boolean
+                                  - nullable: true
+                                  - type: array
+                                    items:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 4096
+                                        - type: number
+                                        - type: boolean
+                                        - nullable: true
+                                    maxItems: 10000
+                                  - type: object
+                                    additionalProperties:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 4096
+                                        - type: number
+                                        - type: boolean
+                                        - nullable: true
+                                  - type: array
+                                    items:
+                                      type: object
+                                      additionalProperties:
+                                        anyOf:
+                                          - type: string
+                                            maxLength: 4096
+                                          - type: number
+                                          - type: boolean
+                                          - nullable: true
+                                    maxItems: 10000
+                            maxItems: 10000
+                    required:
+                      - op
+                    additionalProperties: false
+                  minItems: 1
+                  maxItems: 100
+              required:
+                - schemas
+                - Operations
+              additionalProperties: false
+      responses:
+        "200":
+          description: SCIM user patched atomically
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimUser"
+        "400":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "404":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "409":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "412":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+    delete:
+      operationId: deleteScimV2ByDirectoryKeyUsersById
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+            pattern: ^W\/"[A-Za-z0-9._:-]+"$
+          required: false
+          name: if-match
+          in: header
+      responses:
+        "204":
+          description: SCIM user soft-deprovisioned; sessions invalidated and authored resources retained
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "404":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "412":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+  /scim/v2/{directoryKey}/Groups:
+    get:
+      operationId: getScimV2ByDirectoryKeyGroups
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 2000
+          required: false
+          name: filter
+          in: query
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 1000000
+            default: 1
+          required: false
+          name: startIndex
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+            maximum: 200
+            default: 100
+          required: false
+          name: count
+          in: query
+        - schema:
+            type: string
+            maxLength: 2000
+          required: false
+          name: attributes
+          in: query
+        - schema:
+            type: string
+            maxLength: 2000
+          required: false
+          name: excludedAttributes
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - ascending
+              - descending
+            default: ascending
+          required: false
+          name: sortOrder
+          in: query
+      responses:
+        "200":
+          description: Filtered and paginated SCIM groups
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                properties:
+                  schemas:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - urn:ietf:params:scim:api:messages:2.0:ListResponse
+                    minItems: 1
+                    maxItems: 1
+                  totalResults:
+                    type: integer
+                    minimum: 0
+                  startIndex:
+                    type: integer
+                    minimum: 1
+                  itemsPerPage:
+                    type: integer
+                    minimum: 0
+                  Resources:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ScimGroup"
+                required:
+                  - schemas
+                  - totalResults
+                  - startIndex
+                  - itemsPerPage
+                  - Resources
+                additionalProperties: false
+        "400":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+    post:
+      operationId: postScimV2ByDirectoryKeyGroups
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              type: object
+              properties:
+                schemas:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  maxItems: 8
+                externalId:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                displayName:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                members:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      value:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      display:
+                        type: string
+                        maxLength: 512
+                      $ref:
+                        type: string
+                        maxLength: 2048
+                        format: uri
+                      type:
+                        type: string
+                        enum:
+                          - User
+                    required:
+                      - value
+                    additionalProperties: false
+                  maxItems: 10000
+                  default: []
+              required:
+                - schemas
+                - displayName
+              additionalProperties: false
+      responses:
+        "201":
+          description: SCIM group created
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+            ETag:
+              schema:
+                type: string
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimGroup"
+        "400":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "409":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+  /scim/v2/{directoryKey}/Groups/{id}:
+    get:
+      operationId: getScimV2ByDirectoryKeyGroupsById
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: SCIM group
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimGroup"
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "404":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+    put:
+      operationId: putScimV2ByDirectoryKeyGroupsById
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+            pattern: ^W\/"[A-Za-z0-9._:-]+"$
+          required: false
+          name: if-match
+          in: header
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              type: object
+              properties:
+                schemas:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                  maxItems: 8
+                externalId:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                displayName:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                members:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      value:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      display:
+                        type: string
+                        maxLength: 512
+                      $ref:
+                        type: string
+                        maxLength: 2048
+                        format: uri
+                      type:
+                        type: string
+                        enum:
+                          - User
+                    required:
+                      - value
+                    additionalProperties: false
+                  maxItems: 10000
+                  default: []
+              required:
+                - schemas
+                - displayName
+              additionalProperties: false
+      responses:
+        "200":
+          description: SCIM group replaced
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimGroup"
+        "400":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "404":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "409":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "412":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+    patch:
+      operationId: patchScimV2ByDirectoryKeyGroupsById
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+            pattern: ^W\/"[A-Za-z0-9._:-]+"$
+          required: false
+          name: if-match
+          in: header
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              type: object
+              properties:
+                schemas:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - urn:ietf:params:scim:api:messages:2.0:PatchOp
+                  minItems: 1
+                  maxItems: 1
+                Operations:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      op:
+                        type: string
+                      path:
+                        type: string
+                        minLength: 1
+                        maxLength: 1000
+                      value:
+                        anyOf:
+                          - type: string
+                            maxLength: 4096
+                          - type: number
+                          - type: boolean
+                          - nullable: true
+                          - type: array
+                            items:
+                              anyOf:
+                                - type: string
+                                  maxLength: 4096
+                                - type: number
+                                - type: boolean
+                                - nullable: true
+                            maxItems: 10000
+                          - type: object
+                            additionalProperties:
+                              anyOf:
+                                - type: string
+                                  maxLength: 4096
+                                - type: number
+                                - type: boolean
+                                - nullable: true
+                          - type: array
+                            items:
+                              type: object
+                              additionalProperties:
+                                anyOf:
+                                  - type: string
+                                    maxLength: 4096
+                                  - type: number
+                                  - type: boolean
+                                  - nullable: true
+                            maxItems: 10000
+                          - type: object
+                            additionalProperties:
+                              anyOf:
+                                - type: string
+                                  maxLength: 4096
+                                - type: number
+                                - type: boolean
+                                - nullable: true
+                                - type: array
+                                  items:
+                                    anyOf:
+                                      - type: string
+                                        maxLength: 4096
+                                      - type: number
+                                      - type: boolean
+                                      - nullable: true
+                                  maxItems: 10000
+                                - type: object
+                                  additionalProperties:
+                                    anyOf:
+                                      - type: string
+                                        maxLength: 4096
+                                      - type: number
+                                      - type: boolean
+                                      - nullable: true
+                                - type: array
+                                  items:
+                                    type: object
+                                    additionalProperties:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 4096
+                                        - type: number
+                                        - type: boolean
+                                        - nullable: true
+                                  maxItems: 10000
+                          - type: array
+                            items:
+                              type: object
+                              additionalProperties:
+                                anyOf:
+                                  - type: string
+                                    maxLength: 4096
+                                  - type: number
+                                  - type: boolean
+                                  - nullable: true
+                                  - type: array
+                                    items:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 4096
+                                        - type: number
+                                        - type: boolean
+                                        - nullable: true
+                                    maxItems: 10000
+                                  - type: object
+                                    additionalProperties:
+                                      anyOf:
+                                        - type: string
+                                          maxLength: 4096
+                                        - type: number
+                                        - type: boolean
+                                        - nullable: true
+                                  - type: array
+                                    items:
+                                      type: object
+                                      additionalProperties:
+                                        anyOf:
+                                          - type: string
+                                            maxLength: 4096
+                                          - type: number
+                                          - type: boolean
+                                          - nullable: true
+                                    maxItems: 10000
+                            maxItems: 10000
+                    required:
+                      - op
+                    additionalProperties: false
+                  minItems: 1
+                  maxItems: 100
+              required:
+                - schemas
+                - Operations
+              additionalProperties: false
+      responses:
+        "200":
+          description: SCIM group membership patched atomically
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimGroup"
+        "400":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "404":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "409":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "412":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+    delete:
+      operationId: deleteScimV2ByDirectoryKeyGroupsById
+      tags:
+        - SCIM
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 128
+            pattern: ^[a-z][a-z0-9._-]*$
+          required: true
+          name: directoryKey
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 255
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+            pattern: ^W\/"[A-Za-z0-9._:-]+"$
+          required: false
+          name: if-match
+          in: header
+      responses:
+        "204":
+          description: SCIM group archived; internal users and groups retained
+        "401":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "404":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+        "412":
+          description: SCIM protocol error
+          content:
+            application/scim+json:
+              schema:
+                $ref: "#/components/schemas/ScimError"
+      security:
+        - ScimBearer: []
+components:
+  securitySchemes:
+    ScimBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: EnterpriseGlue directory credential
+      description: Directory-scoped provisioning credential. The credential binds the request to its directory and tenant.
+    ScimOAuthClient:
+      type: http
+      scheme: basic
+      description: Reveal-once provisioning client ID and client secret used only at the directory token endpoint.
+  schemas:
+    ScimError:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+            enum:
+              - urn:ietf:params:scim:api:messages:2.0:Error
+          minItems: 1
+          maxItems: 1
+        status:
+          type: string
+          pattern: ^[1-5][0-9]{2}$
+        scimType:
+          type: string
+          enum:
+            - invalidFilter
+            - tooMany
+            - uniqueness
+            - mutability
+            - invalidSyntax
+            - invalidPath
+            - noTarget
+            - invalidValue
+            - invalidVers
+            - sensitive
+        detail:
+          type: string
+          maxLength: 1000
+      required:
+        - schemas
+        - status
+      additionalProperties: false
+    ScimGroup:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          maxItems: 8
+        externalId:
+          type: string
+          minLength: 1
+          maxLength: 255
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 512
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+                minLength: 1
+                maxLength: 255
+              display:
+                type: string
+                maxLength: 512
+              $ref:
+                type: string
+                maxLength: 2048
+                format: uri
+              type:
+                type: string
+                enum:
+                  - User
+            required:
+              - value
+            additionalProperties: false
+          maxItems: 10000
+          default: []
+        id:
+          type: string
+          minLength: 1
+          maxLength: 255
+        meta:
+          type: object
+          properties:
+            resourceType:
+              type: string
+              enum:
+                - User
+                - Group
+            created:
+              type: string
+              format: date-time
+            lastModified:
+              type: string
+              format: date-time
+            location:
+              type: string
+              format: uri
+            version:
+              type: string
+              pattern: ^W\/"[A-Za-z0-9._:-]+"$
+          required:
+            - resourceType
+            - created
+            - lastModified
+            - location
+            - version
+          additionalProperties: false
+      required:
+        - schemas
+        - displayName
+        - id
+        - meta
+      additionalProperties: false
+    ScimUser:
+      type: object
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          maxItems: 8
+        externalId:
+          type: string
+          minLength: 1
+          maxLength: 255
+        userName:
+          type: string
+          minLength: 1
+          maxLength: 320
+        name:
+          type: object
+          properties:
+            formatted:
+              type: string
+              maxLength: 512
+            familyName:
+              type: string
+              maxLength: 255
+            givenName:
+              type: string
+              maxLength: 255
+            middleName:
+              type: string
+              maxLength: 255
+            honorificPrefix:
+              type: string
+              maxLength: 128
+            honorificSuffix:
+              type: string
+              maxLength: 128
+          additionalProperties: false
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 512
+        nickName:
+          type: string
+          maxLength: 255
+        profileUrl:
+          type: string
+          maxLength: 2048
+          format: uri
+        title:
+          type: string
+          maxLength: 255
+        userType:
+          type: string
+          maxLength: 128
+        preferredLanguage:
+          type: string
+          maxLength: 35
+        locale:
+          type: string
+          maxLength: 35
+        timezone:
+          type: string
+          maxLength: 128
+        active:
+          type: boolean
+          default: true
+        emails:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+                maxLength: 320
+                format: email
+              display:
+                type: string
+                maxLength: 320
+              type:
+                type: string
+                maxLength: 64
+              primary:
+                type: boolean
+            required:
+              - value
+            additionalProperties: false
+          maxItems: 20
+        id:
+          type: string
+          minLength: 1
+          maxLength: 255
+        meta:
+          type: object
+          properties:
+            resourceType:
+              type: string
+              enum:
+                - User
+                - Group
+            created:
+              type: string
+              format: date-time
+            lastModified:
+              type: string
+              format: date-time
+            location:
+              type: string
+              format: uri
+            version:
+              type: string
+              pattern: ^W\/"[A-Za-z0-9._:-]+"$
+          required:
+            - resourceType
+            - created
+            - lastModified
+            - location
+            - version
+          additionalProperties: false
+      required:
+        - schemas
+        - userName
+        - id
+        - meta
+      additionalProperties: false
+  parameters: {}

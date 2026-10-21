@@ -5048,6 +5048,27 @@ registry.registerPath({ method: 'post', path: '/git-api/project-connection', ...
 registry.registerPath({ method: 'put', path: '/git-api/project-connection/token', ...authzExtension('project.git.repositories.manage', 'PUT', '/git-api/project-connection/token'), request: { body: { content: { 'application/json': { schema: UpdateProjectGitConnectionTokenRequestSchema } } } }, responses: { 200: { description: 'Connection token updated', content: { 'application/json': { schema: ProjectGitConnectionOperationReceiptSchema } } } } });
 registry.registerPath({ method: 'delete', path: '/git-api/project-connection', ...authzExtension('project.git.repositories.manage', 'DELETE', '/git-api/project-connection'), request: { body: { content: { 'application/json': { schema: DisconnectProjectGitConnectionRequestSchema } } } }, responses: { 200: { description: 'Project connection disconnected', content: { 'application/json': { schema: ProjectGitConnectionOperationReceiptSchema } } } } });
 
+// Bodies reused by several operations. Registering them turns each repeated inline copy into a $ref.
+const identityProviderConfigurationSchemas = await import('./platform-admin/identity.js');
+registry.register('OidcIdentityProviderConfiguration', identityProviderConfigurationSchemas.OidcIdentityProviderConfigurationSchema);
+registry.register('SamlIdentityProviderConfiguration', identityProviderConfigurationSchemas.SamlIdentityProviderConfigurationSchema);
+registry.register('LdapIdentityProviderConfiguration', identityProviderConfigurationSchemas.LdapIdentityProviderConfigurationSchema);
+registry.register('IdentityProviderRequest', identityProviderMigrationSchemas.IdentityProviderRequestSchema);
+registry.register('IdentityProviderUpdate', identityProviderMigrationSchemas.IdentityProviderUpdateSchema);
+registry.register('AuthenticatedSessionUser', AuthenticatedSessionUserSchema);
+registry.register('AuthenticatedSessionLoginResponse', AuthenticatedSessionLoginResponseSchema);
+registry.register('ConfigBundle', EnterpriseGlueConfigBundleSchema);
+registry.register('ConfigBundleFiles', ConfigBundleFilesOpenApiSchema);
+registry.register('ConfigBundleRequest', ConfigBundleRequestOpenApiSchema);
+registry.register('ConfigBundleDiffChange', ConfigBundleDiffChangeOpenApiSchema);
+registry.register('ConfigBundleApplyRun', ConfigBundleApplyRunOpenApiSchema);
+registry.register('EngineBackstopSyncRunSummary', EngineBackstopSyncRunSummarySchema);
+registry.register('ExternalProjectEngineTarget', ExternalProjectEngineTargetSchema);
+registry.register('ProjectEngineTarget', ProjectEngineTargetSchema);
+registry.register('PluginTenantApplication', pluginTenantApplicationV1Schema);
+registry.register('PluginLifecycleOperation', pluginLifecycleOperationV1Schema);
+registry.register('PluginInstallationSummary', PluginInstallationSummarySchema);
+
 export function generateOpenApi(): any {
   const generator = new OpenApiGeneratorV3(registry.definitions);
   return generator.generateDocument({
