@@ -676,6 +676,10 @@ jobs:
         if: matrix.database == 'postgres' && github.event_name != 'merge_group'
         run: node --test scripts/headless-admin-contract-parity.test.mjs scripts/headless-admin-cli-lifecycle.test.mjs
 
+      - name: Verify published OpenAPI documents are current and valid
+        if: matrix.database == 'postgres' && github.event_name != 'merge_group'
+        run: node scripts/generate-openapi-docs.mjs --check
+
       - name: Run integration tests
         if: matrix.database == 'postgres' && github.event_name != 'merge_group'
         env:

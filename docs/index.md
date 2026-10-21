@@ -25,6 +25,7 @@ Audience: Developers and architects.
 - [Collect Access-Governance Deployment Evidence](how-to/collect-access-governance-deployment-evidence.md)
 
 ## Configuration
+- [OpenAPI Documents](reference/openapi/README.md)
 - [Configuration Reference](reference/configuration.md)
 - [Configuration Matrix](reference/configuration-matrix.md)
 - [Tenant Workload Lifecycle API](reference/tenant-workload-lifecycle-api.md)

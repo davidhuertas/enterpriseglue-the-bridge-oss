@@ -1,0 +1,6721 @@
+openapi: 3.0.3
+info:
+  title: EnterpriseGlue Mission Control API
+  version: 0.1.0
+  description: |-
+    Runtime operations against the process engine: definitions, instances, tasks, jobs, batches, migration and history.
+
+    Tenant-scoped routes under `/api/t/{tenantSlug}/...` are also served at the legacy alias `/t/{tenantSlug}/api/...`; only the first form is documented.
+servers:
+  - url: /
+    description: This EnterpriseGlue deployment
+tags:
+  - name: Mission Control
+    description: "Runtime operations against the process engine: definitions, instances, tasks, jobs, batches, migration and history."
+paths:
+  /mission-control-api/process-definitions:
+    get:
+      operationId: getMissionControlProcessDefinitions
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: key
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: nameLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: latest
+          in: query
+      responses:
+        "200":
+          description: List process definitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MissionControlProcessDefinition"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-definitions/{id}:
+    get:
+      operationId: getMissionControlProcessDefinitionsById
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Process definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionControlProcessDefinition"
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-definitions/{id}/xml:
+    get:
+      operationId: getMissionControlProcessDefinitionsByIdXml
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: BPMN XML
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionControlProcessDefinitionXml"
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-definitions/resolve:
+    get:
+      operationId: getMissionControlProcessDefinitionsResolve
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: key
+          in: query
+        - schema:
+            type: string
+          required: true
+          name: version
+          in: query
+      responses:
+        "200":
+          description: Resolved process definition
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                required:
+                  - id
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-definitions/edit-target:
+    get:
+      operationId: getMissionControlProcessDefinitionsEditTarget
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: engineId
+          in: query
+        - schema:
+            type: string
+          required: true
+          name: key
+          in: query
+        - schema:
+            type: string
+          required: true
+          name: version
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionId
+          in: query
+      responses:
+        "200":
+          description: Starbase file target for the deployed process version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessEditTarget"
+        "404":
+          description: No deployed process mapping found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-definitions/{id}/active-activity-counts:
+    get:
+      operationId: getMissionControlProcessDefinitionsByIdActiveActivityCounts
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Active activity counts by activity ID
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: number
+                  minimum: 0
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/preview-count:
+    post:
+      operationId: postMissionControlProcessInstancesPreviewCount
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PreviewCountRequest"
+      responses:
+        "200":
+          description: Instance count matching filters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationPreviewResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances:
+    get:
+      operationId: getMissionControlProcessInstances
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: engineId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionKey
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: superProcessInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: activityId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: startedAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: startedBefore
+          in: query
+        - schema:
+            type: string
+            enum:
+              - "0"
+              - "1"
+              - "true"
+              - "false"
+          required: false
+          name: active
+          in: query
+        - schema:
+            type: string
+            enum:
+              - "0"
+              - "1"
+              - "true"
+              - "false"
+          required: false
+          name: suspended
+          in: query
+        - schema:
+            type: string
+            enum:
+              - "0"
+              - "1"
+              - "true"
+              - "false"
+          required: false
+          name: withIncidents
+          in: query
+        - schema:
+            type: string
+            enum:
+              - "0"
+              - "1"
+              - "true"
+              - "false"
+          required: false
+          name: completed
+          in: query
+        - schema:
+            type: string
+            enum:
+              - "0"
+              - "1"
+              - "true"
+              - "false"
+          required: false
+          name: canceled
+          in: query
+        - schema:
+            type: string
+            enum:
+              - "true"
+          required: false
+          name: includeActionDecisions
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: List process instances (runtime + historic)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MissionControlProcessInstance"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}:
+    get:
+      operationId: getMissionControlProcessInstancesById
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Process instance details (runtime)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  processDefinitionKey:
+                    type: string
+                  businessKey:
+                    type: string
+                    nullable: true
+                  version:
+                    type: number
+                  superProcessInstanceId:
+                    type: string
+                    nullable: true
+                  rootProcessInstanceId:
+                    type: string
+                    nullable: true
+                  startTime:
+                    type: string
+                    nullable: true
+                  endTime:
+                    type: string
+                    nullable: true
+                  state:
+                    type: string
+                    enum:
+                      - ACTIVE
+                      - SUSPENDED
+                      - COMPLETED
+                      - CANCELED
+                      - INCIDENT
+                  hasIncident:
+                    type: boolean
+                  runtimeActionDecisions:
+                    type: object
+                    properties:
+                      suspension:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                      retry:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                      terminate:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                      migration:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                      modify:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                      variablesUpdate:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                    required:
+                      - suspension
+                      - retry
+                      - terminate
+                    additionalProperties:
+                      nullable: true
+                  processDefinitionId:
+                    type: string
+                  definitionId:
+                    type: string
+                  processDefinitionName:
+                    type: string
+                  processDefinitionVersion:
+                    type: number
+                required:
+                  - id
+                additionalProperties:
+                  nullable: true
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    delete:
+      operationId: deleteMissionControlProcessInstancesById
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "204":
+          description: Deleted
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/variables:
+    get:
+      operationId: getMissionControlProcessInstancesByIdVariables
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Process instance variables
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionControlVariables"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    post:
+      operationId: postMissionControlProcessInstancesByIdVariables
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                engineId:
+                  type: string
+                modifications:
+                  type: object
+                  additionalProperties:
+                    nullable: true
+              required:
+                - modifications
+      responses:
+        "204":
+          description: Variables modified
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/variable-history:
+    get:
+      operationId: getMissionControlProcessInstancesByIdVariableHistory
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: variableInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: engineId
+          in: query
+      responses:
+        "200":
+          description: Variable history timeline for a process instance variable
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VariableHistoryEntry"
+        "400":
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidQueryParametersResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/history/activity-instances:
+    get:
+      operationId: getMissionControlProcessInstancesByIdHistoryActivityInstances
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Historic activity instances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MissionControlActivityInstance"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/execution-details:
+    get:
+      operationId: getMissionControlProcessInstancesByIdExecutionDetails
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+          required: true
+          name: activityInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: executionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskId
+          in: query
+      responses:
+        "200":
+          description: Lazy execution details for a process instance activity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activityInstanceId:
+                    type: string
+                  executionId:
+                    type: string
+                    nullable: true
+                  taskId:
+                    type: string
+                    nullable: true
+                  variables:
+                    $ref: "#/components/schemas/HistoricVariableInstanceList"
+                  tasks:
+                    $ref: "#/components/schemas/HistoricTaskInstanceList"
+                  decisions:
+                    $ref: "#/components/schemas/HistoricDecisionInstanceList"
+                  userOperations:
+                    $ref: "#/components/schemas/UserOperationLogEntryList"
+                required:
+                  - activityInstanceId
+                  - executionId
+                  - taskId
+                  - variables
+                  - tasks
+                  - decisions
+                  - userOperations
+                additionalProperties: false
+        "400":
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidQueryParametersResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/incidents:
+    get:
+      operationId: getMissionControlProcessInstancesByIdIncidents
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Incidents for an instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionControlProcessInstanceIncidentList"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/suspend:
+    put:
+      operationId: putMissionControlProcessInstancesByIdSuspend
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "204":
+          description: Suspended
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/activate:
+    put:
+      operationId: putMissionControlProcessInstancesByIdActivate
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "204":
+          description: Activated
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/retry:
+    post:
+      operationId: postMissionControlProcessInstancesByIdRetry
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                engineId:
+                  type: string
+                jobIds:
+                  type: array
+                  items:
+                    type: string
+                externalTaskIds:
+                  type: array
+                  items:
+                    type: string
+                dueDate:
+                  type: string
+                retries:
+                  type: integer
+                  minimum: 0
+      responses:
+        "204":
+          description: Retry requested
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/history/process-instances:
+    get:
+      operationId: getMissionControlHistoryProcessInstances
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: superProcessInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionKey
+          in: query
+      responses:
+        "200":
+          description: List historic process instances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    processDefinitionKey:
+                      type: string
+                    businessKey:
+                      type: string
+                      nullable: true
+                    version:
+                      type: number
+                    superProcessInstanceId:
+                      type: string
+                      nullable: true
+                    rootProcessInstanceId:
+                      type: string
+                      nullable: true
+                    startTime:
+                      type: string
+                      nullable: true
+                    endTime:
+                      type: string
+                      nullable: true
+                    state:
+                      type: string
+                      enum:
+                        - ACTIVE
+                        - SUSPENDED
+                        - COMPLETED
+                        - CANCELED
+                        - INCIDENT
+                    hasIncident:
+                      type: boolean
+                    runtimeActionDecisions:
+                      type: object
+                      properties:
+                        suspension:
+                          type: object
+                          properties:
+                            allowed:
+                              type: boolean
+                            reason:
+                              type: string
+                          required:
+                            - allowed
+                        retry:
+                          type: object
+                          properties:
+                            allowed:
+                              type: boolean
+                            reason:
+                              type: string
+                          required:
+                            - allowed
+                        terminate:
+                          type: object
+                          properties:
+                            allowed:
+                              type: boolean
+                            reason:
+                              type: string
+                          required:
+                            - allowed
+                        migration:
+                          type: object
+                          properties:
+                            allowed:
+                              type: boolean
+                            reason:
+                              type: string
+                          required:
+                            - allowed
+                        modify:
+                          type: object
+                          properties:
+                            allowed:
+                              type: boolean
+                            reason:
+                              type: string
+                          required:
+                            - allowed
+                        variablesUpdate:
+                          type: object
+                          properties:
+                            allowed:
+                              type: boolean
+                            reason:
+                              type: string
+                          required:
+                            - allowed
+                      required:
+                        - suspension
+                        - retry
+                        - terminate
+                      additionalProperties:
+                        nullable: true
+                    processDefinitionId:
+                      type: string
+                    definitionId:
+                      type: string
+                    processDefinitionName:
+                      type: string
+                    processDefinitionVersion:
+                      type: number
+                  required:
+                    - id
+                  additionalProperties:
+                    nullable: true
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/history/process-instances/{id}:
+    get:
+      operationId: getMissionControlHistoryProcessInstancesById
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Historic process instance details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  processDefinitionKey:
+                    type: string
+                  businessKey:
+                    type: string
+                    nullable: true
+                  version:
+                    type: number
+                  superProcessInstanceId:
+                    type: string
+                    nullable: true
+                  rootProcessInstanceId:
+                    type: string
+                    nullable: true
+                  startTime:
+                    type: string
+                    nullable: true
+                  endTime:
+                    type: string
+                    nullable: true
+                  state:
+                    type: string
+                    enum:
+                      - ACTIVE
+                      - SUSPENDED
+                      - COMPLETED
+                      - CANCELED
+                      - INCIDENT
+                  hasIncident:
+                    type: boolean
+                  runtimeActionDecisions:
+                    type: object
+                    properties:
+                      suspension:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                      retry:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                      terminate:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                      migration:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                      modify:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                      variablesUpdate:
+                        type: object
+                        properties:
+                          allowed:
+                            type: boolean
+                          reason:
+                            type: string
+                        required:
+                          - allowed
+                    required:
+                      - suspension
+                      - retry
+                      - terminate
+                    additionalProperties:
+                      nullable: true
+                  processDefinitionId:
+                    type: string
+                  definitionId:
+                    type: string
+                  processDefinitionName:
+                    type: string
+                  processDefinitionVersion:
+                    type: number
+                required:
+                  - id
+                additionalProperties:
+                  nullable: true
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/history/variable-instances:
+    get:
+      operationId: getMissionControlHistoryVariableInstances
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: processInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: variableName
+          in: query
+      responses:
+        "200":
+          description: Historic variable instances
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoricVariableInstanceList"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/batches/process-instances/delete:
+    post:
+      operationId: postMissionControlBatchesProcessInstancesDelete
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeleteBatchRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchOperationCreateResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/batches/process-instances/suspend:
+    post:
+      operationId: postMissionControlBatchesProcessInstancesSuspend
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSuspendActivateBatchRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchOperationCreateResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/batches/process-instances/activate:
+    post:
+      operationId: postMissionControlBatchesProcessInstancesActivate
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSuspendActivateBatchRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchOperationCreateResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/batches/jobs/retries:
+    post:
+      operationId: postMissionControlBatchesJobsRetries
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRetriesBatchRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchOperationCreateResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/batches:
+    get:
+      operationId: getMissionControlBatches
+      tags:
+        - Mission Control
+      responses:
+        "200":
+          description: List batches
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Batch"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/batches/{id}/suspended:
+    put:
+      operationId: putMissionControlBatchesByIdSuspended
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                suspended:
+                  type: boolean
+              required:
+                - suspended
+      responses:
+        "204":
+          description: Batch suspension state changed
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/batches/{id}:
+    get:
+      operationId: getMissionControlBatchesById
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Batch detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BatchDetail"
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    delete:
+      operationId: deleteMissionControlBatchesById
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "204":
+          description: Canceled
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/batches/{id}/record:
+    delete:
+      operationId: deleteMissionControlBatchesByIdRecord
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "204":
+          description: Batch record deleted
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/migration/plan/generate:
+    post:
+      operationId: postMissionControlMigrationPlanGenerate
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MigrationGenerateInput"
+      responses:
+        "200":
+          description: Generated migration plan (compatibility alias)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationPlan"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/migration/plan/validate:
+    post:
+      operationId: postMissionControlMigrationPlanValidate
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MigrationValidateRequest"
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  instructionReports:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        instruction:
+                          type: object
+                          properties:
+                            sourceActivityIds:
+                              type: array
+                              items:
+                                type: string
+                            targetActivityIds:
+                              type: array
+                              items:
+                                type: string
+                            targetActivityId:
+                              type: string
+                            updateEventTrigger:
+                              type: boolean
+                          additionalProperties:
+                            nullable: true
+                        failures:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              errorMessage:
+                                type: string
+                              warningMessage:
+                                type: string
+                              message:
+                                type: string
+                            additionalProperties:
+                              nullable: true
+                        warnings:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              errorMessage:
+                                type: string
+                              warningMessage:
+                                type: string
+                              message:
+                                type: string
+                            additionalProperties:
+                              nullable: true
+                      additionalProperties:
+                        nullable: true
+                    default: []
+                additionalProperties:
+                  nullable: true
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/migration/execute-async:
+    post:
+      operationId: postMissionControlMigrationExecuteAsync
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MigrationExecuteRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationCreateResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/migration/execute-direct:
+    post:
+      operationId: postMissionControlMigrationExecuteDirect
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MigrationExecuteRequest"
+      responses:
+        "200":
+          description: Executed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationDirectResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/migration/preview:
+    post:
+      operationId: postMissionControlMigrationPreview
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MigrationPreviewRequest"
+      responses:
+        "200":
+          description: Preview affected instances count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationPreviewResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/migration/active-sources:
+    post:
+      operationId: postMissionControlMigrationActiveSources
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActiveSourcesRequest"
+      responses:
+        "200":
+          description: Active source activity counts keyed by activityId
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActiveSourcesResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/direct/process-instances/delete:
+    post:
+      operationId: postMissionControlDirectProcessInstancesDelete
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DirectProcessInstanceDeleteRequest"
+      responses:
+        "200":
+          description: Result for each requested process instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DirectOperationResult"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/direct/process-instances/suspend:
+    post:
+      operationId: postMissionControlDirectProcessInstancesSuspend
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActiveSourcesRequest"
+      responses:
+        "200":
+          description: Result for each requested process instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DirectOperationResult"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/direct/process-instances/activate:
+    post:
+      operationId: postMissionControlDirectProcessInstancesActivate
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActiveSourcesRequest"
+      responses:
+        "200":
+          description: Result for each requested process instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DirectOperationResult"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/direct/jobs/retries:
+    post:
+      operationId: postMissionControlDirectJobsRetries
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DirectJobRetriesRequest"
+      responses:
+        "200":
+          description: Result for each requested process instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DirectOperationResult"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/tasks:
+    get:
+      operationId: getMissionControlTasks
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: processInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionKey
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: assignee
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: assigneeLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: owner
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: candidateUser
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: candidateGroup
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: name
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: nameLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: description
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: descriptionLike
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: priority
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: maxPriority
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: minPriority
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: dueAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: dueBefore
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: followUpAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: followUpBefore
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: createdAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: createdBefore
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: active
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: suspended
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskDefinitionKey
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: taskDefinitionKeyIn
+          in: query
+        - schema:
+            type: string
+            enum:
+              - instanceId
+              - dueDate
+              - executionId
+              - assignee
+              - created
+              - description
+              - id
+              - name
+              - priority
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          name: sortOrder
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: Query tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/tasks/count:
+    get:
+      operationId: getMissionControlTasksCount
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: processInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionKey
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: assignee
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: assigneeLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: owner
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: candidateUser
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: candidateGroup
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: name
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: nameLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: description
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: descriptionLike
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: priority
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: maxPriority
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: minPriority
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: dueAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: dueBefore
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: followUpAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: followUpBefore
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: createdAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: createdBefore
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: active
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: suspended
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskDefinitionKey
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: taskDefinitionKeyIn
+          in: query
+        - schema:
+            type: string
+            enum:
+              - instanceId
+              - dueDate
+              - executionId
+              - assignee
+              - created
+              - description
+              - id
+              - name
+              - priority
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          name: sortOrder
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: Count tasks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationPreviewResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/tasks/{id}:
+    get:
+      operationId: getMissionControlTasksById
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Get task
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/tasks/{id}/variables:
+    get:
+      operationId: getMissionControlTasksByIdVariables
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Task variables
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionControlVariables"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+    put:
+      operationId: putMissionControlTasksByIdVariables
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                modifications:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+                deletions:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Variables updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionControlVariables"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/tasks/{id}/form:
+    get:
+      operationId: getMissionControlTasksByIdForm
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Task form
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    nullable: true
+                  contextPath:
+                    type: string
+                    nullable: true
+                  formFields:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        label:
+                          type: string
+                          nullable: true
+                        type:
+                          type: string
+                        defaultValue:
+                          nullable: true
+                        validationConstraints:
+                          type: array
+                          items:
+                            nullable: true
+                        properties:
+                          type: object
+                          additionalProperties:
+                            nullable: true
+                      required:
+                        - id
+                        - type
+                      additionalProperties:
+                        nullable: true
+                additionalProperties:
+                  nullable: true
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/tasks/{id}/claim:
+    post:
+      operationId: postMissionControlTasksByIdClaim
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+              required:
+                - userId
+      responses:
+        "204":
+          description: Claimed
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/tasks/{id}/unclaim:
+    post:
+      operationId: postMissionControlTasksByIdUnclaim
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "204":
+          description: Unclaimed
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/tasks/{id}/assignee:
+    post:
+      operationId: postMissionControlTasksByIdAssignee
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  nullable: true
+              required:
+                - userId
+      responses:
+        "204":
+          description: Assignee set
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/tasks/{id}/complete:
+    post:
+      operationId: postMissionControlTasksByIdComplete
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                variables:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+                withVariablesInReturn:
+                  type: boolean
+      responses:
+        "200":
+          description: Task completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionControlVariables"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/external-tasks/fetchAndLock:
+    post:
+      operationId: postMissionControlExternalTasksFetchAndLock
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workerId:
+                  type: string
+                maxTasks:
+                  type: number
+                usePriority:
+                  type: boolean
+                asyncResponseTimeout:
+                  type: number
+                topics:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      topicName:
+                        type: string
+                      lockDuration:
+                        type: number
+                      variables:
+                        type: array
+                        items:
+                          type: string
+                      localVariables:
+                        type: boolean
+                      businessKey:
+                        type: string
+                      processDefinitionId:
+                        type: string
+                      processDefinitionIdIn:
+                        type: array
+                        items:
+                          type: string
+                      processDefinitionKey:
+                        type: string
+                      processDefinitionKeyIn:
+                        type: array
+                        items:
+                          type: string
+                      processVariables:
+                        type: object
+                        additionalProperties:
+                          nullable: true
+                      withoutTenantId:
+                        type: boolean
+                      tenantIdIn:
+                        type: array
+                        items:
+                          type: string
+                    required:
+                      - topicName
+                      - lockDuration
+              required:
+                - workerId
+                - topics
+      responses:
+        "200":
+          description: Locked external tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExternalTask"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/external-tasks:
+    get:
+      operationId: getMissionControlExternalTasks
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: externalTaskId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: topicName
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: workerId
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: locked
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: notLocked
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withRetriesLeft
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: noRetriesLeft
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: lockExpirationAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: lockExpirationBefore
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: activityId
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: activityIdIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: executionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionKey
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: active
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: suspended
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: priorityHigherThanOrEquals
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: priorityLowerThanOrEquals
+          in: query
+        - schema:
+            type: string
+            enum:
+              - id
+              - lockExpirationTime
+              - processInstanceId
+              - processDefinitionId
+              - processDefinitionKey
+              - tenantId
+              - taskPriority
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          name: sortOrder
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: Query external tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExternalTask"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/external-tasks/{id}/complete:
+    post:
+      operationId: postMissionControlExternalTasksByIdComplete
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workerId:
+                  type: string
+                variables:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+                localVariables:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+              required:
+                - workerId
+      responses:
+        "204":
+          description: Completed
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/external-tasks/{id}/failure:
+    post:
+      operationId: postMissionControlExternalTasksByIdFailure
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workerId:
+                  type: string
+                errorMessage:
+                  type: string
+                errorDetails:
+                  type: string
+                retries:
+                  type: number
+                retryTimeout:
+                  type: number
+              required:
+                - workerId
+      responses:
+        "204":
+          description: Failure reported
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/external-tasks/{id}/bpmnError:
+    post:
+      operationId: postMissionControlExternalTasksByIdBpmnError
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workerId:
+                  type: string
+                errorCode:
+                  type: string
+                errorMessage:
+                  type: string
+                variables:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+              required:
+                - workerId
+                - errorCode
+      responses:
+        "204":
+          description: BPMN error reported
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/external-tasks/{id}/extendLock:
+    post:
+      operationId: postMissionControlExternalTasksByIdExtendLock
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                workerId:
+                  type: string
+                newDuration:
+                  type: number
+              required:
+                - workerId
+                - newDuration
+      responses:
+        "204":
+          description: Lock extended
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/external-tasks/{id}/unlock:
+    post:
+      operationId: postMissionControlExternalTasksByIdUnlock
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "204":
+          description: Unlocked
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/messages:
+    post:
+      operationId: postMissionControlMessages
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                messageName:
+                  type: string
+                businessKey:
+                  type: string
+                tenantId:
+                  type: string
+                withoutTenantId:
+                  type: boolean
+                processInstanceId:
+                  type: string
+                correlationKeys:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+                localCorrelationKeys:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+                processVariables:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+                processVariablesLocal:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+                all:
+                  type: boolean
+                resultEnabled:
+                  type: boolean
+                variablesInResultEnabled:
+                  type: boolean
+              required:
+                - messageName
+      responses:
+        "200":
+          description: One result for each correlated execution or process definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageCorrelationResults"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/signals:
+    post:
+      operationId: postMissionControlSignals
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                executionId:
+                  type: string
+                variables:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+                tenantId:
+                  type: string
+                withoutTenantId:
+                  type: boolean
+              required:
+                - name
+      responses:
+        "204":
+          description: Signal delivered
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/decision-definitions:
+    get:
+      operationId: getMissionControlDecisionDefinitions
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: decisionDefinitionId
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: decisionDefinitionIdIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: name
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: nameLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: deploymentId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: key
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: keyLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: category
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: categoryLike
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: version
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: latestVersion
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: resourceName
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: resourceNameLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: decisionRequirementsDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: decisionRequirementsDefinitionKey
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withoutDecisionRequirementsDefinition
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: tenantIdIn
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withoutTenantId
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: includeDecisionDefinitionsWithoutTenantId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: versionTag
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: versionTagLike
+          in: query
+        - schema:
+            type: string
+            enum:
+              - category
+              - key
+              - id
+              - name
+              - version
+              - deploymentId
+              - tenantId
+              - decisionRequirementsDefinitionKey
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          name: sortOrder
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: List decision definitions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionDefinitionList"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/decision-definitions/{id}:
+    get:
+      operationId: getMissionControlDecisionDefinitionsById
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Get decision definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionDefinition"
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/decision-definitions/{id}/xml:
+    get:
+      operationId: getMissionControlDecisionDefinitionsByIdXml
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: DMN XML
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  dmnXml:
+                    type: string
+                required:
+                  - dmnXml
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/decision-definitions/{id}/evaluate:
+    post:
+      operationId: postMissionControlDecisionDefinitionsByIdEvaluate
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                variables:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+              required:
+                - variables
+      responses:
+        "200":
+          description: Decision result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionEvaluationResult"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/decision-definitions/key/{key}/evaluate:
+    post:
+      operationId: postMissionControlDecisionDefinitionsKeyByKeyEvaluate
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: key
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                variables:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    properties:
+                      value:
+                        nullable: true
+                      type:
+                        type: string
+              required:
+                - variables
+      responses:
+        "200":
+          description: Decision result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionEvaluationResult"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/decision-definitions/edit-target:
+    get:
+      operationId: getMissionControlDecisionDefinitionsEditTarget
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: engineId
+          in: query
+        - schema:
+            type: string
+          required: true
+          name: key
+          in: query
+        - schema:
+            type: string
+          required: true
+          name: version
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: decisionDefinitionId
+          in: query
+      responses:
+        "200":
+          description: Starbase file target for the deployed decision version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionEditTarget"
+        "404":
+          description: No deployed decision mapping found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/jobs:
+    get:
+      operationId: getMissionControlJobs
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: jobId
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: jobIds
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: jobDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processInstanceId
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: processInstanceIds
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: executionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionKey
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: activityId
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withRetriesLeft
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: executable
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: timers
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: messages
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withException
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: exceptionMessage
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: noRetriesLeft
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: active
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: suspended
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: priorityHigherThanOrEquals
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: priorityLowerThanOrEquals
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: dueDates
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: createTimes
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: tenantIdIn
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withoutTenantId
+          in: query
+        - schema:
+            type: string
+            enum:
+              - jobId
+              - executionId
+              - processInstanceId
+              - processDefinitionId
+              - processDefinitionKey
+              - jobPriority
+              - jobRetries
+              - jobDueDate
+              - tenantId
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          name: sortOrder
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: Query jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Job"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/jobs/{id}:
+    get:
+      operationId: getMissionControlJobsById
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Get job
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Job"
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/jobs/{id}/execute:
+    post:
+      operationId: postMissionControlJobsByIdExecute
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExecuteJobRequest"
+      responses:
+        "204":
+          description: Job executed
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/jobs/{id}/retries:
+    put:
+      operationId: putMissionControlJobsByIdRetries
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                retries:
+                  type: number
+              required:
+                - retries
+      responses:
+        "204":
+          description: Retries set
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/jobs/{id}/suspended:
+    put:
+      operationId: putMissionControlJobsByIdSuspended
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                suspended:
+                  type: boolean
+              required:
+                - suspended
+      responses:
+        "204":
+          description: Suspension state updated
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/job-definitions:
+    get:
+      operationId: getMissionControlJobDefinitions
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: jobDefinitionId
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: activityIdIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionKey
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: jobType
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: jobConfiguration
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: active
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: suspended
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withOverridingJobPriority
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: tenantIdIn
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withoutTenantId
+          in: query
+        - schema:
+            type: string
+            enum:
+              - jobDefinitionId
+              - activityId
+              - processDefinitionId
+              - processDefinitionKey
+              - jobType
+              - jobConfiguration
+              - tenantId
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          name: sortOrder
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: Query job definitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/JobDefinition"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/job-definitions/{id}/retries:
+    put:
+      operationId: putMissionControlJobDefinitionsByIdRetries
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                retries:
+                  type: number
+              required:
+                - retries
+      responses:
+        "204":
+          description: Retries set
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/job-definitions/{id}/suspended:
+    put:
+      operationId: putMissionControlJobDefinitionsByIdSuspended
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                suspended:
+                  type: boolean
+                includeJobs:
+                  type: boolean
+                executionDate:
+                  type: string
+              required:
+                - suspended
+      responses:
+        "204":
+          description: Suspension state updated
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/history/tasks:
+    get:
+      operationId: getMissionControlHistoryTasks
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: taskId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionKey
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processInstanceBusinessKey
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: executionId
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: activityInstanceIdIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskDefinitionKey
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: taskDefinitionKeyIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskName
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskNameLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskDescription
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskDescriptionLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskDeleteReason
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskDeleteReasonLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskAssignee
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskAssigneeLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskOwner
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskOwnerLike
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: taskPriority
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: assigned
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: unassigned
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: finished
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: unfinished
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: processFinished
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: processUnfinished
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskDueDate
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskDueDateBefore
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskDueDateAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskFollowUpDate
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskFollowUpDateBefore
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskFollowUpDateAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: startedBefore
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: startedAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: finishedBefore
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: finishedAfter
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: tenantIdIn
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withoutTenantId
+          in: query
+        - schema:
+            type: string
+            enum:
+              - taskId
+              - activityInstanceId
+              - processDefinitionId
+              - processInstanceId
+              - executionId
+              - duration
+              - endTime
+              - startTime
+              - taskName
+              - taskDescription
+              - assignee
+              - owner
+              - dueDate
+              - followUpDate
+              - deleteReason
+              - taskDefinitionKey
+              - priority
+              - tenantId
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          name: sortOrder
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: Historic task instances
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoricTaskInstanceList"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/history/variables:
+    get:
+      operationId: getMissionControlHistoryVariables
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: variableName
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: variableNameLike
+          in: query
+        - schema:
+            nullable: true
+          required: false
+          name: variableValue
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: variableTypeIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processInstanceId
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: processInstanceIdIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionKey
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: executionIdIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: caseInstanceId
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: caseExecutionIdIn
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: caseActivityIdIn
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: taskIdIn
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: activityInstanceIdIn
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: tenantIdIn
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withoutTenantId
+          in: query
+        - schema:
+            type: string
+            enum:
+              - instanceId
+              - variableName
+              - tenantId
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          name: sortOrder
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: Historic variable instances
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoricVariableInstanceList"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/history/decisions:
+    get:
+      operationId: getMissionControlHistoryDecisions
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: decisionInstanceId
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: decisionInstanceIdIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: decisionDefinitionId
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: decisionDefinitionIdIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: decisionDefinitionKey
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: decisionDefinitionKeyIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: decisionDefinitionName
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: decisionDefinitionNameLike
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionKey
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: caseDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: caseDefinitionKey
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: caseInstanceId
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: activityIdIn
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: activityInstanceIdIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: evaluatedBefore
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: evaluatedAfter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: userId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: rootDecisionInstanceId
+          in: query
+        - schema:
+            type: boolean
+            nullable: true
+          required: false
+          name: rootDecisionInstancesOnly
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: decisionRequirementsDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: decisionRequirementsDefinitionKey
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: tenantIdIn
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: withoutTenantId
+          in: query
+        - schema:
+            type: string
+            enum:
+              - evaluationTime
+              - tenantId
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          name: sortOrder
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: Historic decision instances
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoricDecisionInstanceList"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/history/decisions/{id}/inputs:
+    get:
+      operationId: getMissionControlHistoryDecisionsByIdInputs
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Inputs for a historic decision instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoricDecisionIoList"
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/history/decisions/{id}/outputs:
+    get:
+      operationId: getMissionControlHistoryDecisionsByIdOutputs
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Outputs for a historic decision instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoricDecisionIoList"
+        "404":
+          description: Not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/history/user-operations:
+    get:
+      operationId: getMissionControlHistoryUserOperations
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: deploymentId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processDefinitionKey
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: processInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: executionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: caseDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: caseInstanceId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: caseExecutionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: taskId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: externalTaskId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: batchId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: jobId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: jobDefinitionId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: userId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: operationId
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: operationType
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: entityType
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: entityTypeIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: category
+          in: query
+        - schema:
+            type: array
+            items:
+              type: string
+          required: false
+          name: categoryIn
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: property
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: afterTimestamp
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: beforeTimestamp
+          in: query
+        - schema:
+            type: string
+            enum:
+              - timestamp
+          required: false
+          name: sortBy
+          in: query
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          name: sortOrder
+          in: query
+        - schema:
+            type: integer
+            nullable: true
+            minimum: 0
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: integer
+            minimum: 0
+            exclusiveMinimum: true
+          required: false
+          name: maxResults
+          in: query
+      responses:
+        "200":
+          description: User operation log
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOperationLogEntryList"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/metrics:
+    get:
+      operationId: getMissionControlMetrics
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: name
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: reporter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: startDate
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: endDate
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: maxResults
+          in: query
+        - schema:
+            type: string
+            enum:
+              - "15"
+              - "60"
+              - "900"
+          required: false
+          name: interval
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: aggregateByReporter
+          in: query
+      responses:
+        "200":
+          description: Query metrics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Metric"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/metrics/{name}:
+    get:
+      operationId: getMissionControlMetricsByName
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: name
+          in: path
+        - schema:
+            type: string
+          required: false
+          name: name
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: reporter
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: startDate
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: endDate
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: firstResult
+          in: query
+        - schema:
+            type: number
+          required: false
+          name: maxResults
+          in: query
+        - schema:
+            type: string
+            enum:
+              - "15"
+              - "60"
+              - "900"
+          required: false
+          name: interval
+          in: query
+        - schema:
+            type: boolean
+          required: false
+          name: aggregateByReporter
+          in: query
+      responses:
+        "200":
+          description: Get metric by name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Metric"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/modify:
+    post:
+      operationId: postMissionControlProcessInstancesByIdModify
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProcessInstanceModificationRequest"
+      responses:
+        "204":
+          description: Modified
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-definitions/{id}/modification/execute-async:
+    post:
+      operationId: postMissionControlProcessDefinitionsByIdModificationExecuteAsync
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProcessDefinitionModificationAsyncRequest"
+      responses:
+        "201":
+          description: Batch created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessDefinitionModificationAsyncResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-definitions/{id}/restart/execute-async:
+    post:
+      operationId: postMissionControlProcessDefinitionsByIdRestartExecuteAsync
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProcessDefinitionRestartAsyncRequest"
+      responses:
+        "201":
+          description: Batch created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessDefinitionRestartAsyncResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-definitions/{id}/activity-counts-by-state:
+    get:
+      operationId: getMissionControlProcessDefinitionsByIdActivityCountsByState
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Activity counts grouped by state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  active:
+                    type: object
+                    additionalProperties:
+                      type: number
+                      minimum: 0
+                  incidents:
+                    type: object
+                    additionalProperties:
+                      type: number
+                      minimum: 0
+                  suspended:
+                    type: object
+                    additionalProperties:
+                      type: number
+                      minimum: 0
+                  canceled:
+                    type: object
+                    additionalProperties:
+                      type: number
+                      minimum: 0
+                  completed:
+                    type: object
+                    additionalProperties:
+                      type: number
+                      minimum: 0
+                required:
+                  - active
+                  - incidents
+                  - suspended
+                  - canceled
+                  - completed
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-definitions/key/{key}/start:
+    post:
+      operationId: postMissionControlProcessDefinitionsKeyByKeyStart
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: key
+          in: path
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                variables:
+                  type: object
+                  additionalProperties:
+                    nullable: true
+                businessKey:
+                  type: string
+      responses:
+        "200":
+          description: Process instance started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProcessInstanceStartResponse"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-definitions/key/{key}/statistics:
+    get:
+      operationId: getMissionControlProcessDefinitionsKeyByKeyStatistics
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: key
+          in: path
+      responses:
+        "200":
+          description: Process definition statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: number
+                  minimum: 0
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/activity-instances:
+    get:
+      operationId: getMissionControlProcessInstancesByIdActivityInstances
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Runtime activity instance tree
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    nullable: true
+                  activityId:
+                    type: string
+                    nullable: true
+                  activityName:
+                    type: string
+                    nullable: true
+                  activityType:
+                    type: string
+                    nullable: true
+                  parentActivityInstanceId:
+                    type: string
+                    nullable: true
+                  executionIds:
+                    type: array
+                    nullable: true
+                    items:
+                      type: string
+                  childActivityInstances:
+                    type: array
+                    nullable: true
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          nullable: true
+                        activityId:
+                          type: string
+                          nullable: true
+                      additionalProperties:
+                        nullable: true
+                  childTransitionInstances:
+                    type: array
+                    nullable: true
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          nullable: true
+                        activityId:
+                          type: string
+                          nullable: true
+                      additionalProperties:
+                        nullable: true
+                additionalProperties:
+                  nullable: true
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/jobs:
+    get:
+      operationId: getMissionControlProcessInstancesByIdJobs
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Jobs for process instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionControlProcessInstanceJobList"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/process-instances/{id}/failed-external-tasks:
+    get:
+      operationId: getMissionControlProcessInstancesByIdFailedExternalTasks
+      tags:
+        - Mission Control
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Failed external tasks for instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionControlProcessInstanceExternalTaskList"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /mission-control-api/migration/generate:
+    post:
+      operationId: postMissionControlMigrationGenerate
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MigrationGenerateInput"
+      responses:
+        "200":
+          description: Generated migration plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MigrationPlan"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/mission-control/bridge/starbase-edit/evaluate:
+    post:
+      operationId: postMissionControlBridgeStarbaseEditEvaluate
+      tags:
+        - Mission Control
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                engineId:
+                  type: string
+                projectId:
+                  type: string
+                fileId:
+                  type: string
+                targetId:
+                  type: string
+                definitionId:
+                  type: string
+                definitionKey:
+                  type: string
+                decisionDefinitionId:
+                  type: string
+                decisionDefinitionKey:
+                  type: string
+                kind:
+                  type: string
+                  enum:
+                    - process
+                    - decision
+                    - bpmn
+                    - dmn
+              additionalProperties:
+                nullable: true
+      responses:
+        "200":
+          description: Evaluate Mission Control to Starbase edit bridge access
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  allowed:
+                    type: boolean
+                  reasonCode:
+                    type: string
+                  reason:
+                    type: string
+                  missingActions:
+                    type: array
+                    items:
+                      type: string
+                  projectId:
+                    type: string
+                    nullable: true
+                  fileId:
+                    type: string
+                    nullable: true
+                  engineId:
+                    type: string
+                    nullable: true
+                  targetId:
+                    type: string
+                    nullable: true
+                  lineage:
+                    type: object
+                    additionalProperties:
+                      nullable: true
+                  diagnostics:
+                    type: object
+                    properties:
+                      effectiveAccessUrl:
+                        type: string
+                      label:
+                        type: string
+                required:
+                  - allowed
+                  - reasonCode
+                  - reason
+                  - missingActions
+                  - projectId
+                  - fileId
+                  - engineId
+                  - targetId
+                  - lineage
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Access token returned by the login endpoints, sent as `Authorization: Bearer <token>`."
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: Access token cookie set by the browser login flows. Mutating requests also need the XSRF header.
+  schemas:
+    ActiveSourcesRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        processInstanceIds:
+          type: array
+          items:
+            type: string
+          default: []
+      required:
+        - engineId
+      additionalProperties:
+        nullable: true
+    ActiveSourcesResponse:
+      type: object
+      additionalProperties:
+        type: integer
+        minimum: 0
+    Batch:
+      type: object
+      properties:
+        id:
+          type: string
+        camundaBatchId:
+          type: string
+          nullable: true
+        type:
+          type: string
+        payload:
+          type: string
+          nullable: true
+        totalJobs:
+          type: number
+          nullable: true
+        jobsCreated:
+          type: number
+          nullable: true
+        completedJobs:
+          type: number
+          nullable: true
+        failedJobs:
+          type: number
+          nullable: true
+        remainingJobs:
+          type: number
+          nullable: true
+        invocationsPerBatchJob:
+          type: number
+          nullable: true
+        seedJobDefinitionId:
+          type: string
+          nullable: true
+        monitorJobDefinitionId:
+          type: string
+          nullable: true
+        batchJobDefinitionId:
+          type: string
+          nullable: true
+        status:
+          type: string
+        progress:
+          type: number
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        completedAt:
+          type: number
+          nullable: true
+        lastError:
+          type: string
+          nullable: true
+        suspended:
+          type: boolean
+      required:
+        - id
+        - camundaBatchId
+        - type
+        - payload
+        - totalJobs
+        - jobsCreated
+        - completedJobs
+        - failedJobs
+        - remainingJobs
+        - invocationsPerBatchJob
+        - seedJobDefinitionId
+        - monitorJobDefinitionId
+        - batchJobDefinitionId
+        - status
+        - progress
+        - createdBy
+        - createdAt
+        - updatedAt
+        - completedAt
+        - lastError
+    BatchDetail:
+      type: object
+      properties:
+        batch:
+          $ref: "#/components/schemas/Batch"
+        engine:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            totalJobs:
+              type: number
+              nullable: true
+            jobsCreated:
+              type: number
+              nullable: true
+            completedJobs:
+              type: number
+              nullable: true
+            failedJobs:
+              type: number
+              nullable: true
+            remainingJobs:
+              type: number
+              nullable: true
+            invocationsPerBatchJob:
+              type: number
+              nullable: true
+            seedJobDefinitionId:
+              type: string
+              nullable: true
+            monitorJobDefinitionId:
+              type: string
+              nullable: true
+            batchJobDefinitionId:
+              type: string
+              nullable: true
+          additionalProperties:
+            nullable: true
+        statistics:
+          type: object
+          nullable: true
+          properties:
+            remainingJobs:
+              type: number
+              nullable: true
+            completedJobs:
+              type: number
+              nullable: true
+            failedJobs:
+              type: number
+              nullable: true
+          additionalProperties:
+            nullable: true
+        failedJobDetails:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              exceptionMessage:
+                type: string
+                nullable: true
+              retries:
+                type: number
+                nullable: true
+              jobDefinitionId:
+                type: string
+                nullable: true
+              processInstanceId:
+                type: string
+                nullable: true
+              executionId:
+                type: string
+                nullable: true
+              stacktrace:
+                type: string
+                nullable: true
+            additionalProperties:
+              nullable: true
+        runtimeActionDecisions:
+          type: object
+          properties:
+            suspension:
+              type: object
+              properties:
+                allowed:
+                  type: boolean
+                reason:
+                  type: string
+              required:
+                - allowed
+            cancel:
+              type: object
+              properties:
+                allowed:
+                  type: boolean
+                reason:
+                  type: string
+              required:
+                - allowed
+            recordDelete:
+              type: object
+              properties:
+                allowed:
+                  type: boolean
+                reason:
+                  type: string
+              required:
+                - allowed
+          required:
+            - suspension
+            - cancel
+          additionalProperties:
+            nullable: true
+      required:
+        - batch
+      additionalProperties: false
+    BatchOperationCreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        camundaBatchId:
+          type: string
+        type:
+          type: string
+          enum:
+            - DELETE_INSTANCES
+            - SUSPEND_INSTANCES
+            - ACTIVATE_INSTANCES
+            - SET_JOB_RETRIES
+      required:
+        - id
+        - type
+      additionalProperties: false
+    CreateDeleteBatchRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        processInstanceIds:
+          type: array
+          items:
+            type: string
+        processInstanceQuery:
+          type: object
+          additionalProperties:
+            nullable: true
+        auditReason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        deleteReason:
+          type: string
+        skipCustomListeners:
+          type: boolean
+        skipIoMappings:
+          type: boolean
+        failIfNotExists:
+          type: boolean
+        skipSubprocesses:
+          type: boolean
+      additionalProperties:
+        nullable: true
+    CreateRetriesBatchRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        processInstanceIds:
+          type: array
+          items:
+            type: string
+        processInstanceQuery:
+          type: object
+          additionalProperties:
+            nullable: true
+        auditReason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        retries:
+          type: integer
+          minimum: 0
+        jobIds:
+          type: array
+          items:
+            type: string
+      additionalProperties:
+        nullable: true
+    CreateSuspendActivateBatchRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        processInstanceIds:
+          type: array
+          items:
+            type: string
+        processInstanceQuery:
+          type: object
+          additionalProperties:
+            nullable: true
+        auditReason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        suspended:
+          type: boolean
+      additionalProperties:
+        nullable: true
+    DecisionDefinition:
+      type: object
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+        category:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        version:
+          type: number
+        resource:
+          type: string
+          nullable: true
+        deploymentId:
+          type: string
+          nullable: true
+        tenantId:
+          type: string
+          nullable: true
+        decisionRequirementsDefinitionId:
+          type: string
+          nullable: true
+        decisionRequirementsDefinitionKey:
+          type: string
+          nullable: true
+        historyTimeToLive:
+          type: number
+          nullable: true
+        versionTag:
+          type: string
+          nullable: true
+      required:
+        - id
+        - key
+        - version
+      additionalProperties:
+        nullable: true
+    DecisionDefinitionList:
+      type: array
+      items:
+        $ref: "#/components/schemas/DecisionDefinition"
+    DecisionEditTarget:
+      type: object
+      properties:
+        canShowEditButton:
+          type: boolean
+        canEdit:
+          type: boolean
+        engineId:
+          type: string
+        projectId:
+          type: string
+        fileId:
+          type: string
+        engineDeploymentId:
+          type: string
+        commitId:
+          type: string
+          nullable: true
+        fileVersionNumber:
+          type: number
+          nullable: true
+        mappingSource:
+          type: string
+          enum:
+            - git-commit
+            - db-timestamp
+            - db-latest
+            - deployment-timestamp
+        artifactCreatedAt:
+          type: number
+        lineageQuality:
+          type: string
+          enum:
+            - complete
+            - reported
+        decisionKey:
+          type: string
+        decisionVersion:
+          type: number
+      required:
+        - canShowEditButton
+        - canEdit
+        - engineId
+        - projectId
+        - fileId
+        - decisionKey
+        - decisionVersion
+    DecisionEvaluationResult:
+      type: array
+      items:
+        type: object
+        additionalProperties:
+          type: object
+          properties:
+            value:
+              nullable: true
+            type:
+              type: string
+          additionalProperties:
+            nullable: true
+    DirectJobRetriesRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        processInstanceIds:
+          type: array
+          items:
+            type: string
+          default: []
+        retries:
+          type: number
+          minimum: 0
+          default: 1
+        onlyFailed:
+          type: boolean
+          default: true
+      required:
+        - engineId
+      additionalProperties:
+        nullable: true
+    DirectOperationResult:
+      type: object
+      properties:
+        total:
+          type: integer
+          minimum: 0
+        succeeded:
+          type: array
+          items:
+            type: string
+        failed:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              ok:
+                type: boolean
+                enum:
+                  - false
+              error:
+                type: string
+            required:
+              - id
+              - ok
+            additionalProperties: false
+      required:
+        - total
+        - succeeded
+        - failed
+      additionalProperties: false
+    DirectProcessInstanceDeleteRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        processInstanceIds:
+          type: array
+          items:
+            type: string
+          default: []
+        skipCustomListeners:
+          type: boolean
+        skipIoMappings:
+          type: boolean
+        failIfNotExists:
+          type: boolean
+        skipSubprocesses:
+          type: boolean
+        deleteReason:
+          type: string
+      required:
+        - engineId
+      additionalProperties:
+        nullable: true
+    ExecuteJobRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+      required:
+        - engineId
+      additionalProperties:
+        nullable: true
+    ExternalTask:
+      type: object
+      properties:
+        id:
+          type: string
+        topicName:
+          type: string
+        workerId:
+          type: string
+          nullable: true
+        lockExpirationTime:
+          type: string
+          nullable: true
+        processInstanceId:
+          type: string
+          nullable: true
+        executionId:
+          type: string
+          nullable: true
+        activityId:
+          type: string
+          nullable: true
+        activityInstanceId:
+          type: string
+          nullable: true
+        processDefinitionId:
+          type: string
+          nullable: true
+        processDefinitionKey:
+          type: string
+          nullable: true
+        retries:
+          type: number
+          nullable: true
+        errorMessage:
+          type: string
+          nullable: true
+        errorDetails:
+          type: string
+          nullable: true
+        priority:
+          type: number
+        suspended:
+          type: boolean
+        tenantId:
+          type: string
+          nullable: true
+        variables:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              value:
+                nullable: true
+              type:
+                type: string
+            required:
+              - type
+        businessKey:
+          type: string
+          nullable: true
+      required:
+        - id
+        - topicName
+      additionalProperties:
+        nullable: true
+    HistoricDecisionInstance:
+      type: object
+      properties:
+        id:
+          type: string
+        decisionDefinitionId:
+          type: string
+          nullable: true
+        decisionDefinitionKey:
+          type: string
+          nullable: true
+        decisionDefinitionName:
+          type: string
+          nullable: true
+        processDefinitionKey:
+          type: string
+          nullable: true
+        processDefinitionId:
+          type: string
+          nullable: true
+        processInstanceId:
+          type: string
+          nullable: true
+        caseDefinitionKey:
+          type: string
+          nullable: true
+        caseDefinitionId:
+          type: string
+          nullable: true
+        caseInstanceId:
+          type: string
+          nullable: true
+        activityId:
+          type: string
+          nullable: true
+        activityInstanceId:
+          type: string
+          nullable: true
+        evaluationTime:
+          type: string
+          nullable: true
+        removalTime:
+          type: string
+          nullable: true
+        userId:
+          type: string
+          nullable: true
+        rootDecisionInstanceId:
+          type: string
+          nullable: true
+        rootProcessInstanceId:
+          type: string
+          nullable: true
+        decisionRequirementsDefinitionId:
+          type: string
+          nullable: true
+        decisionRequirementsDefinitionKey:
+          type: string
+          nullable: true
+        tenantId:
+          type: string
+          nullable: true
+      required:
+        - id
+      additionalProperties:
+        nullable: true
+    HistoricDecisionInstanceList:
+      type: array
+      items:
+        $ref: "#/components/schemas/HistoricDecisionInstance"
+    HistoricDecisionIoList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          decisionInstanceId:
+            type: string
+          clauseId:
+            type: string
+            nullable: true
+          clauseName:
+            type: string
+            nullable: true
+          ruleId:
+            type: string
+            nullable: true
+          ruleOrder:
+            type: number
+            nullable: true
+          variableName:
+            type: string
+            nullable: true
+          type:
+            type: string
+            nullable: true
+          value:
+            nullable: true
+          valueInfo:
+            type: object
+            additionalProperties:
+              nullable: true
+          errorMessage:
+            type: string
+            nullable: true
+          createTime:
+            type: string
+          removalTime:
+            type: string
+            nullable: true
+          rootProcessInstanceId:
+            type: string
+            nullable: true
+        required:
+          - id
+        additionalProperties:
+          nullable: true
+    HistoricTaskInstance:
+      type: object
+      properties:
+        id:
+          type: string
+        processDefinitionKey:
+          type: string
+          nullable: true
+        processDefinitionId:
+          type: string
+          nullable: true
+        processInstanceId:
+          type: string
+          nullable: true
+        executionId:
+          type: string
+          nullable: true
+        caseDefinitionKey:
+          type: string
+          nullable: true
+        caseDefinitionId:
+          type: string
+          nullable: true
+        caseInstanceId:
+          type: string
+          nullable: true
+        caseExecutionId:
+          type: string
+          nullable: true
+        activityInstanceId:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        deleteReason:
+          type: string
+          nullable: true
+        owner:
+          type: string
+          nullable: true
+        assignee:
+          type: string
+          nullable: true
+        startTime:
+          type: string
+          nullable: true
+        endTime:
+          type: string
+          nullable: true
+        duration:
+          type: number
+          nullable: true
+        taskDefinitionKey:
+          type: string
+          nullable: true
+        priority:
+          type: number
+          nullable: true
+        due:
+          type: string
+          nullable: true
+        parentTaskId:
+          type: string
+          nullable: true
+        followUp:
+          type: string
+          nullable: true
+        tenantId:
+          type: string
+          nullable: true
+        removalTime:
+          type: string
+          nullable: true
+        rootProcessInstanceId:
+          type: string
+          nullable: true
+      required:
+        - id
+      additionalProperties:
+        nullable: true
+    HistoricTaskInstanceList:
+      type: array
+      items:
+        $ref: "#/components/schemas/HistoricTaskInstance"
+    HistoricVariableInstance:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          nullable: true
+        value:
+          nullable: true
+        valueRedacted:
+          type: boolean
+        processDefinitionKey:
+          type: string
+          nullable: true
+        processDefinitionId:
+          type: string
+          nullable: true
+        processInstanceId:
+          type: string
+          nullable: true
+        executionId:
+          type: string
+          nullable: true
+        activityInstanceId:
+          type: string
+          nullable: true
+        caseDefinitionKey:
+          type: string
+          nullable: true
+        caseDefinitionId:
+          type: string
+          nullable: true
+        caseInstanceId:
+          type: string
+          nullable: true
+        caseExecutionId:
+          type: string
+          nullable: true
+        taskId:
+          type: string
+          nullable: true
+        tenantId:
+          type: string
+          nullable: true
+        errorMessage:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        createTime:
+          type: string
+          nullable: true
+        removalTime:
+          type: string
+          nullable: true
+        rootProcessInstanceId:
+          type: string
+          nullable: true
+      required:
+        - id
+        - name
+      additionalProperties:
+        nullable: true
+    HistoricVariableInstanceList:
+      type: array
+      items:
+        $ref: "#/components/schemas/HistoricVariableInstance"
+    InvalidQueryParametersResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          enum:
+            - Invalid query parameters
+        issues:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+              message:
+                type: string
+            required:
+              - path
+              - message
+      required:
+        - error
+    Job:
+      type: object
+      properties:
+        id:
+          type: string
+        jobDefinitionId:
+          type: string
+          nullable: true
+        dueDate:
+          type: string
+          nullable: true
+        processInstanceId:
+          type: string
+          nullable: true
+        executionId:
+          type: string
+          nullable: true
+        processDefinitionId:
+          type: string
+          nullable: true
+        processDefinitionKey:
+          type: string
+          nullable: true
+        retries:
+          type: number
+          nullable: true
+        exceptionMessage:
+          type: string
+          nullable: true
+        failedActivityId:
+          type: string
+          nullable: true
+        suspended:
+          type: boolean
+        priority:
+          type: number
+        tenantId:
+          type: string
+          nullable: true
+        createTime:
+          type: string
+          nullable: true
+      required:
+        - id
+      additionalProperties:
+        nullable: true
+    JobDefinition:
+      type: object
+      properties:
+        id:
+          type: string
+        processDefinitionId:
+          type: string
+          nullable: true
+        processDefinitionKey:
+          type: string
+          nullable: true
+        activityId:
+          type: string
+          nullable: true
+        jobType:
+          type: string
+          nullable: true
+        jobConfiguration:
+          type: string
+          nullable: true
+        overridingJobPriority:
+          type: number
+          nullable: true
+        suspended:
+          type: boolean
+        tenantId:
+          type: string
+          nullable: true
+        deploymentId:
+          type: string
+          nullable: true
+      required:
+        - id
+      additionalProperties:
+        nullable: true
+    MessageCorrelationResult:
+      type: object
+      properties:
+        resultType:
+          type: string
+          enum:
+            - Execution
+            - ProcessDefinition
+        processInstance:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            definitionId:
+              type: string
+              nullable: true
+            businessKey:
+              type: string
+              nullable: true
+            caseInstanceId:
+              type: string
+              nullable: true
+            ended:
+              type: boolean
+            suspended:
+              type: boolean
+            tenantId:
+              type: string
+              nullable: true
+          required:
+            - id
+        execution:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+            processInstanceId:
+              type: string
+              nullable: true
+          required:
+            - id
+      required:
+        - resultType
+      additionalProperties:
+        nullable: true
+    MessageCorrelationResults:
+      type: array
+      items:
+        $ref: "#/components/schemas/MessageCorrelationResult"
+    Metric:
+      type: object
+      properties:
+        timestamp:
+          type: string
+        name:
+          type: string
+        reporter:
+          type: string
+          nullable: true
+        value:
+          type: number
+      required:
+        - timestamp
+        - name
+        - value
+    MigrationCreateResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        camundaBatchId:
+          type: string
+        type:
+          type: string
+          enum:
+            - MIGRATE_INSTANCES
+      required:
+        - id
+        - type
+      additionalProperties: false
+    MigrationDirectResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          enum:
+            - true
+      required:
+        - ok
+      additionalProperties: false
+    MigrationExecuteRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        plan:
+          $ref: "#/components/schemas/MigrationPlan"
+        processInstanceIds:
+          type: array
+          items:
+            type: string
+        processInstanceQuery:
+          type: object
+          additionalProperties:
+            nullable: true
+        skipCustomListeners:
+          type: boolean
+        skipIoMappings:
+          type: boolean
+        variables:
+          $ref: "#/components/schemas/MissionControlVariables"
+        auditReason:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+        - plan
+        - auditReason
+    MigrationGenerateInput:
+      anyOf:
+        - type: object
+          properties:
+            engineId:
+              type: string
+            updateEventTriggers:
+              type: boolean
+            overrides:
+              type: array
+              items:
+                type: object
+                properties:
+                  sourceActivityIds:
+                    type: array
+                    items:
+                      type: string
+                  sourceActivityId:
+                    type: string
+                  targetActivityId:
+                    type: string
+                  targetActivityIds:
+                    type: array
+                    items:
+                      type: string
+                  updateEventTrigger:
+                    type: boolean
+            sourceProcessDefinitionId:
+              type: string
+            targetProcessDefinitionId:
+              type: string
+          required:
+            - sourceProcessDefinitionId
+            - targetProcessDefinitionId
+          additionalProperties:
+            nullable: true
+        - type: object
+          properties:
+            engineId:
+              type: string
+            updateEventTriggers:
+              type: boolean
+            overrides:
+              type: array
+              items:
+                type: object
+                properties:
+                  sourceActivityIds:
+                    type: array
+                    items:
+                      type: string
+                  sourceActivityId:
+                    type: string
+                  targetActivityId:
+                    type: string
+                  targetActivityIds:
+                    type: array
+                    items:
+                      type: string
+                  updateEventTrigger:
+                    type: boolean
+            sourceDefinitionId:
+              type: string
+            targetDefinitionId:
+              type: string
+          required:
+            - sourceDefinitionId
+            - targetDefinitionId
+          additionalProperties:
+            nullable: true
+    MigrationInstruction:
+      type: object
+      properties:
+        sourceActivityIds:
+          type: array
+          items:
+            type: string
+        targetActivityIds:
+          type: array
+          items:
+            type: string
+        updateEventTrigger:
+          type: boolean
+      required:
+        - sourceActivityIds
+        - targetActivityIds
+    MigrationPlan:
+      type: object
+      properties:
+        sourceProcessDefinitionId:
+          type: string
+        targetProcessDefinitionId:
+          type: string
+        instructions:
+          type: array
+          items:
+            $ref: "#/components/schemas/MigrationInstruction"
+          default: []
+        updateEventTriggers:
+          type: boolean
+      required:
+        - sourceProcessDefinitionId
+        - targetProcessDefinitionId
+    MigrationPreviewRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        plan:
+          type: object
+          additionalProperties:
+            nullable: true
+        processInstanceIds:
+          type: array
+          items:
+            type: string
+      required:
+        - engineId
+      additionalProperties:
+        nullable: true
+    MigrationPreviewResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+          minimum: 0
+      required:
+        - count
+      additionalProperties: false
+    MigrationValidateRequest:
+      anyOf:
+        - type: object
+          properties:
+            engineId:
+              type: string
+            plan:
+              anyOf:
+                - type: object
+                  properties:
+                    sourceProcessDefinitionId:
+                      type: string
+                    targetProcessDefinitionId:
+                      type: string
+                  required:
+                    - sourceProcessDefinitionId
+                    - targetProcessDefinitionId
+                  additionalProperties:
+                    nullable: true
+                - type: object
+                  properties:
+                    sourceDefinitionId:
+                      type: string
+                    targetDefinitionId:
+                      type: string
+                  required:
+                    - sourceDefinitionId
+                    - targetDefinitionId
+                  additionalProperties:
+                    nullable: true
+            processInstanceIds:
+              type: array
+              items:
+                type: string
+          required:
+            - plan
+          additionalProperties:
+            nullable: true
+        - type: object
+          properties:
+            sourceProcessDefinitionId:
+              type: string
+            targetProcessDefinitionId:
+              type: string
+          required:
+            - sourceProcessDefinitionId
+            - targetProcessDefinitionId
+          additionalProperties:
+            nullable: true
+        - type: object
+          properties:
+            sourceDefinitionId:
+              type: string
+            targetDefinitionId:
+              type: string
+          required:
+            - sourceDefinitionId
+            - targetDefinitionId
+          additionalProperties:
+            nullable: true
+    MissionControlActivityInstance:
+      type: object
+      properties:
+        id:
+          type: string
+        activityId:
+          type: string
+        activityName:
+          type: string
+          nullable: true
+        startTime:
+          type: string
+          nullable: true
+        endTime:
+          type: string
+          nullable: true
+        activityType:
+          type: string
+          nullable: true
+        activityInstanceId:
+          type: string
+          nullable: true
+        parentActivityInstanceId:
+          type: string
+          nullable: true
+        executionId:
+          type: string
+          nullable: true
+        calledProcessInstanceId:
+          type: string
+          nullable: true
+        taskId:
+          type: string
+          nullable: true
+        durationInMillis:
+          type: number
+          nullable: true
+        canceled:
+          type: boolean
+        completeScope:
+          type: boolean
+      required:
+        - id
+      additionalProperties:
+        nullable: true
+    MissionControlProcessDefinition:
+      type: object
+      properties:
+        id:
+          type: string
+        key:
+          type: string
+        name:
+          type: string
+        version:
+          type: number
+        versionTag:
+          type: string
+          nullable: true
+        suspended:
+          type: boolean
+      required:
+        - id
+        - key
+        - version
+      additionalProperties:
+        nullable: true
+    MissionControlProcessDefinitionXml:
+      type: object
+      properties:
+        id:
+          type: string
+        bpmn20Xml:
+          type: string
+      required:
+        - bpmn20Xml
+    MissionControlProcessInstance:
+      type: object
+      properties:
+        id:
+          type: string
+        processDefinitionKey:
+          type: string
+        businessKey:
+          type: string
+          nullable: true
+        version:
+          type: number
+        superProcessInstanceId:
+          type: string
+          nullable: true
+        rootProcessInstanceId:
+          type: string
+          nullable: true
+        startTime:
+          type: string
+          nullable: true
+        endTime:
+          type: string
+          nullable: true
+        state:
+          type: string
+          enum:
+            - ACTIVE
+            - SUSPENDED
+            - COMPLETED
+            - CANCELED
+            - INCIDENT
+        hasIncident:
+          type: boolean
+        runtimeActionDecisions:
+          type: object
+          properties:
+            suspension:
+              type: object
+              properties:
+                allowed:
+                  type: boolean
+                reason:
+                  type: string
+              required:
+                - allowed
+            retry:
+              type: object
+              properties:
+                allowed:
+                  type: boolean
+                reason:
+                  type: string
+              required:
+                - allowed
+            terminate:
+              type: object
+              properties:
+                allowed:
+                  type: boolean
+                reason:
+                  type: string
+              required:
+                - allowed
+            migration:
+              type: object
+              properties:
+                allowed:
+                  type: boolean
+                reason:
+                  type: string
+              required:
+                - allowed
+            modify:
+              type: object
+              properties:
+                allowed:
+                  type: boolean
+                reason:
+                  type: string
+              required:
+                - allowed
+            variablesUpdate:
+              type: object
+              properties:
+                allowed:
+                  type: boolean
+                reason:
+                  type: string
+              required:
+                - allowed
+          required:
+            - suspension
+            - retry
+            - terminate
+          additionalProperties:
+            nullable: true
+      required:
+        - id
+      additionalProperties:
+        nullable: true
+    MissionControlProcessInstanceExternalTaskList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          activityId:
+            type: string
+            nullable: true
+          retries:
+            type: number
+            nullable: true
+          errorMessage:
+            type: string
+            nullable: true
+          errorDetails:
+            type: string
+            nullable: true
+        required:
+          - id
+        additionalProperties:
+          nullable: true
+    MissionControlProcessInstanceIncidentList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          incidentType:
+            type: string
+            nullable: true
+          type:
+            type: string
+            nullable: true
+          activityId:
+            type: string
+            nullable: true
+          configuration:
+            type: string
+            nullable: true
+          jobId:
+            type: string
+            nullable: true
+          incidentMessage:
+            type: string
+            nullable: true
+          incidentTimestamp:
+            type: string
+            nullable: true
+        required:
+          - id
+        additionalProperties:
+          nullable: true
+    MissionControlProcessInstanceJobList:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          dueDate:
+            type: string
+            nullable: true
+          duedate:
+            type: string
+            nullable: true
+          retries:
+            type: number
+            nullable: true
+          exceptionMessage:
+            type: string
+            nullable: true
+        required:
+          - id
+        additionalProperties:
+          nullable: true
+    MissionControlVariables:
+      type: object
+      additionalProperties:
+        type: object
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+          type:
+            type: string
+          value:
+            nullable: true
+          valueRedacted:
+            type: boolean
+          valueInfo:
+            nullable: true
+          processInstanceId:
+            type: string
+            nullable: true
+          executionId:
+            type: string
+            nullable: true
+          activityInstanceId:
+            type: string
+            nullable: true
+          taskId:
+            type: string
+            nullable: true
+          createTime:
+            type: string
+            nullable: true
+        required:
+          - type
+        additionalProperties:
+          nullable: true
+    ModificationInstruction:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - startBeforeActivity
+            activityId:
+              type: string
+            ancestorActivityInstanceId:
+              type: string
+            variables:
+              type: object
+              additionalProperties:
+                nullable: true
+          required:
+            - type
+            - activityId
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - startAfterActivity
+            activityId:
+              type: string
+            ancestorActivityInstanceId:
+              type: string
+            variables:
+              type: object
+              additionalProperties:
+                nullable: true
+          required:
+            - type
+            - activityId
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - startTransition
+            transitionId:
+              type: string
+            ancestorActivityInstanceId:
+              type: string
+            variables:
+              type: object
+              additionalProperties:
+                nullable: true
+          required:
+            - type
+            - transitionId
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - cancel
+            activityInstanceIds:
+              type: array
+              items:
+                type: string
+            transitionInstanceIds:
+              type: array
+              items:
+                type: string
+            activityId:
+              type: string
+            cancelCurrentActiveActivityInstances:
+              type: boolean
+          required:
+            - type
+    PreviewCountRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        processDefinitionKey:
+          type: string
+        processDefinitionId:
+          type: string
+        active:
+          type: boolean
+        suspended:
+          type: boolean
+        withIncident:
+          type: boolean
+        withIncidents:
+          type: boolean
+        variables:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              operator:
+                type: string
+              value:
+                nullable: true
+            required:
+              - name
+              - operator
+      additionalProperties:
+        nullable: true
+    ProcessDefinitionModificationAsyncRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        instructions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModificationInstruction"
+          minItems: 1
+        processInstanceIds:
+          type: array
+          items:
+            type: string
+        processInstanceQuery:
+          type: object
+          additionalProperties:
+            nullable: true
+        skipCustomListeners:
+          type: boolean
+        skipIoMappings:
+          type: boolean
+        annotation:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+        - instructions
+    ProcessDefinitionModificationAsyncResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        camundaBatchId:
+          type: string
+        type:
+          type: string
+          enum:
+            - MODIFY_INSTANCES
+      required:
+        - id
+        - type
+      additionalProperties: false
+    ProcessDefinitionRestartAsyncRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        processInstanceIds:
+          type: array
+          items:
+            type: string
+        historicProcessInstanceQuery:
+          type: object
+          additionalProperties:
+            nullable: true
+        initialVariables:
+          type: boolean
+        skipCustomListeners:
+          type: boolean
+        skipIoMappings:
+          type: boolean
+        withoutBusinessKey:
+          type: boolean
+        instructions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModificationInstruction"
+    ProcessDefinitionRestartAsyncResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        camundaBatchId:
+          type: string
+        type:
+          type: string
+          enum:
+            - RESTART_INSTANCES
+      required:
+        - id
+        - type
+      additionalProperties: false
+    ProcessEditTarget:
+      type: object
+      properties:
+        canShowEditButton:
+          type: boolean
+        canEdit:
+          type: boolean
+        engineId:
+          type: string
+        projectId:
+          type: string
+        fileId:
+          type: string
+        engineDeploymentId:
+          type: string
+        commitId:
+          type: string
+          nullable: true
+        fileVersionNumber:
+          type: number
+          nullable: true
+        mappingSource:
+          type: string
+          enum:
+            - git-commit
+            - db-timestamp
+            - db-latest
+            - deployment-timestamp
+        artifactCreatedAt:
+          type: number
+        lineageQuality:
+          type: string
+          enum:
+            - complete
+            - reported
+        processKey:
+          type: string
+        processVersion:
+          type: number
+      required:
+        - canShowEditButton
+        - canEdit
+        - engineId
+        - projectId
+        - fileId
+        - processKey
+        - processVersion
+    ProcessInstanceModificationRequest:
+      type: object
+      properties:
+        engineId:
+          type: string
+        instructions:
+          type: array
+          items:
+            $ref: "#/components/schemas/ModificationInstruction"
+          minItems: 1
+        skipCustomListeners:
+          type: boolean
+        skipIoMappings:
+          type: boolean
+        annotation:
+          type: string
+          minLength: 1
+          maxLength: 2000
+      required:
+        - instructions
+    ProcessInstanceStartResponse:
+      type: object
+      properties:
+        id:
+          type: string
+      required:
+        - id
+      additionalProperties:
+        nullable: true
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+        assignee:
+          type: string
+          nullable: true
+        owner:
+          type: string
+          nullable: true
+        created:
+          type: string
+          nullable: true
+        due:
+          type: string
+          nullable: true
+        followUp:
+          type: string
+          nullable: true
+        delegationState:
+          type: string
+          nullable: true
+          enum:
+            - PENDING
+            - RESOLVED
+            - null
+        description:
+          type: string
+          nullable: true
+        executionId:
+          type: string
+          nullable: true
+        parentTaskId:
+          type: string
+          nullable: true
+        priority:
+          type: number
+          nullable: true
+        processDefinitionId:
+          type: string
+          nullable: true
+        processInstanceId:
+          type: string
+          nullable: true
+        taskDefinitionKey:
+          type: string
+          nullable: true
+        caseExecutionId:
+          type: string
+          nullable: true
+        caseInstanceId:
+          type: string
+          nullable: true
+        caseDefinitionId:
+          type: string
+          nullable: true
+        suspended:
+          type: boolean
+        formKey:
+          type: string
+          nullable: true
+        tenantId:
+          type: string
+          nullable: true
+      required:
+        - id
+      additionalProperties:
+        nullable: true
+    UserOperationLogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        userId:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          nullable: true
+        operationId:
+          type: string
+          nullable: true
+        operationType:
+          type: string
+          nullable: true
+        entityType:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        annotation:
+          type: string
+          nullable: true
+        property:
+          type: string
+          nullable: true
+        orgValue:
+          type: string
+          nullable: true
+        newValue:
+          type: string
+          nullable: true
+        deploymentId:
+          type: string
+          nullable: true
+        processDefinitionId:
+          type: string
+          nullable: true
+        processDefinitionKey:
+          type: string
+          nullable: true
+        processInstanceId:
+          type: string
+          nullable: true
+        executionId:
+          type: string
+          nullable: true
+        caseDefinitionId:
+          type: string
+          nullable: true
+        caseInstanceId:
+          type: string
+          nullable: true
+        caseExecutionId:
+          type: string
+          nullable: true
+        taskId:
+          type: string
+          nullable: true
+        externalTaskId:
+          type: string
+          nullable: true
+        batchId:
+          type: string
+          nullable: true
+        jobId:
+          type: string
+          nullable: true
+        jobDefinitionId:
+          type: string
+          nullable: true
+        removalTime:
+          type: string
+          nullable: true
+        rootProcessInstanceId:
+          type: string
+          nullable: true
+      required:
+        - id
+      additionalProperties:
+        nullable: true
+    UserOperationLogEntryList:
+      type: array
+      items:
+        $ref: "#/components/schemas/UserOperationLogEntry"
+    VariableHistoryEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        variableInstanceId:
+          type: string
+        variableName:
+          type: string
+        value:
+          nullable: true
+        valueRedacted:
+          type: boolean
+        type:
+          type: string
+          nullable: true
+        time:
+          type: string
+          nullable: true
+        activityInstanceId:
+          type: string
+          nullable: true
+        executionId:
+          type: string
+          nullable: true
+        taskId:
+          type: string
+          nullable: true
+        revision:
+          type: number
+          nullable: true
+        serializerName:
+          type: string
+          nullable: true
+      required:
+        - id
+        - variableInstanceId
+        - variableName
+  parameters: {}

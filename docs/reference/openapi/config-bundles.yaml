@@ -1,0 +1,4867 @@
+openapi: 3.0.3
+info:
+  title: EnterpriseGlue Config Bundles API
+  version: 0.1.0
+  description: |-
+    Headless configuration bundles: import, preview, diff, apply, export and governance ownership.
+
+    Tenant-scoped routes under `/api/t/{tenantSlug}/...` are also served at the legacy alias `/t/{tenantSlug}/api/...`; only the first form is documented.
+servers:
+  - url: /
+    description: This EnterpriseGlue deployment
+tags:
+  - name: Config Bundles
+    description: "Headless configuration bundles: import, preview, diff, apply, export and governance ownership."
+paths:
+  /api/authz/config-bundles/import-zip:
+    post:
+      operationId: postAuthzConfigBundlesImportZip
+      tags:
+        - Config Bundles
+      requestBody:
+        content:
+          application/zip:
+            schema:
+              type: string
+          application/octet-stream:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: Convert a validated folder-style configuration ZIP into the standard bundle envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfigBundleRequest"
+        "422":
+          description: Invalid configuration ZIP archive
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/import-url:
+    post:
+      operationId: postAuthzConfigBundlesImportUrl
+      tags:
+        - Config Bundles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  maxLength: 2048
+                  format: uri
+              required:
+                - url
+              additionalProperties: false
+      responses:
+        "200":
+          description: Import a bounded GitHub or GitLab raw JSON/ZIP configuration file into the standard bundle envelope
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfigBundleRequest"
+        "422":
+          description: Unsupported or invalid remote configuration source
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/preview:
+    post:
+      operationId: postAuthzConfigBundlesPreview
+      tags:
+        - Config Bundles
+      summary: Preview a headless authorization and engine configuration bundle
+      description: Validates the manifest and imported object files without persistence. Use v1beta1 governance names for new bundles. Omit bundle.governance for engine-only or identity-only bundles that must not claim platform governance settings; v1alpha1 settings aliases remain accepted with warnings.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfigBundleRequest"
+      responses:
+        "200":
+          description: Validated config bundle preview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  canonicalHash:
+                    type: string
+                  contract:
+                    type: object
+                    properties:
+                      inputApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1alpha1
+                          - enterpriseglue.ai/v1beta1
+                      normalizedApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1beta1
+                      warnings:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                              enum:
+                                - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                                - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                            message:
+                              type: string
+                          required:
+                            - code
+                            - message
+                          additionalProperties: false
+                    required:
+                      - inputApiVersion
+                      - normalizedApiVersion
+                      - warnings
+                    additionalProperties: false
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        path:
+                          type: string
+                        message:
+                          type: string
+                        severity:
+                          type: string
+                          enum:
+                            - error
+                        remediation:
+                          type: string
+                        objectKey:
+                          type: string
+                      required:
+                        - path
+                        - message
+                        - severity
+                        - remediation
+                  counts:
+                    $ref: "#/components/schemas/ActiveSourcesResponse"
+                  expandedRolePermissions:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+                  roleTemplateBaselines:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        copyFromRoleKey:
+                          type: string
+                        fingerprint:
+                          type: string
+                        permissions:
+                          type: array
+                          items:
+                            type: string
+                      required:
+                        - copyFromRoleKey
+                        - fingerprint
+                        - permissions
+                required:
+                  - valid
+                  - errors
+                  - counts
+        "422":
+          description: Invalid config bundle preview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  canonicalHash:
+                    type: string
+                  contract:
+                    type: object
+                    properties:
+                      inputApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1alpha1
+                          - enterpriseglue.ai/v1beta1
+                      normalizedApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1beta1
+                      warnings:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                              enum:
+                                - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                                - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                            message:
+                              type: string
+                          required:
+                            - code
+                            - message
+                          additionalProperties: false
+                    required:
+                      - inputApiVersion
+                      - normalizedApiVersion
+                      - warnings
+                    additionalProperties: false
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        path:
+                          type: string
+                        message:
+                          type: string
+                        severity:
+                          type: string
+                          enum:
+                            - error
+                        remediation:
+                          type: string
+                        objectKey:
+                          type: string
+                      required:
+                        - path
+                        - message
+                        - severity
+                        - remediation
+                  counts:
+                    $ref: "#/components/schemas/ActiveSourcesResponse"
+                  expandedRolePermissions:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+                  roleTemplateBaselines:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        copyFromRoleKey:
+                          type: string
+                        fingerprint:
+                          type: string
+                        permissions:
+                          type: array
+                          items:
+                            type: string
+                      required:
+                        - copyFromRoleKey
+                        - fingerprint
+                        - permissions
+                required:
+                  - valid
+                  - errors
+                  - counts
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/validate-secret-refs:
+    post:
+      operationId: postAuthzConfigBundlesValidateSecretRefs
+      tags:
+        - Config Bundles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfigBundleRequest"
+      responses:
+        "200":
+          description: Secret-reference availability without secret values
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  canonicalHash:
+                    type: string
+                  contract:
+                    type: object
+                    properties:
+                      inputApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1alpha1
+                          - enterpriseglue.ai/v1beta1
+                      normalizedApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1beta1
+                      warnings:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                              enum:
+                                - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                                - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                            message:
+                              type: string
+                          required:
+                            - code
+                            - message
+                          additionalProperties: false
+                    required:
+                      - inputApiVersion
+                      - normalizedApiVersion
+                      - warnings
+                    additionalProperties: false
+                  availabilityHash:
+                    type: string
+                  available:
+                    type: boolean
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        path:
+                          type: string
+                        message:
+                          type: string
+                        severity:
+                          type: string
+                          enum:
+                            - error
+                        remediation:
+                          type: string
+                        objectKey:
+                          type: string
+                      required:
+                        - path
+                        - message
+                        - severity
+                        - remediation
+                  references:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        reference:
+                          type: string
+                        locations:
+                          type: array
+                          items:
+                            type: string
+                        available:
+                          type: boolean
+                        reason:
+                          type: string
+                          enum:
+                            - file_provider_not_configured
+                            - file_outside_root
+                            - file_unavailable
+                            - docker_secret_provider_not_configured
+                            - docker_secret_invalid_name
+                            - docker_secret_unavailable
+                            - environment_variable_missing
+                      required:
+                        - reference
+                        - locations
+                        - available
+                required:
+                  - valid
+                  - available
+                  - errors
+                  - references
+        "422":
+          description: Invalid configuration bundle
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  canonicalHash:
+                    type: string
+                  contract:
+                    type: object
+                    properties:
+                      inputApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1alpha1
+                          - enterpriseglue.ai/v1beta1
+                      normalizedApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1beta1
+                      warnings:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                              enum:
+                                - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                                - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                            message:
+                              type: string
+                          required:
+                            - code
+                            - message
+                          additionalProperties: false
+                    required:
+                      - inputApiVersion
+                      - normalizedApiVersion
+                      - warnings
+                    additionalProperties: false
+                  availabilityHash:
+                    type: string
+                  available:
+                    type: boolean
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        path:
+                          type: string
+                        message:
+                          type: string
+                        severity:
+                          type: string
+                          enum:
+                            - error
+                        remediation:
+                          type: string
+                        objectKey:
+                          type: string
+                      required:
+                        - path
+                        - message
+                        - severity
+                        - remediation
+                  references:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        reference:
+                          type: string
+                        locations:
+                          type: array
+                          items:
+                            type: string
+                        available:
+                          type: boolean
+                        reason:
+                          type: string
+                          enum:
+                            - file_provider_not_configured
+                            - file_outside_root
+                            - file_unavailable
+                            - docker_secret_provider_not_configured
+                            - docker_secret_invalid_name
+                            - docker_secret_unavailable
+                            - environment_variable_missing
+                      required:
+                        - reference
+                        - locations
+                        - available
+                required:
+                  - valid
+                  - available
+                  - errors
+                  - references
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/diff:
+    post:
+      operationId: postAuthzConfigBundlesDiff
+      tags:
+        - Config Bundles
+      summary: Diff a headless configuration bundle against persisted state
+      description: Reports persisted changes without mutation. Platform governance appears only when the raw manifest explicitly declares at least one governance field.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConfigBundleRequest"
+      responses:
+        "200":
+          description: Persisted config bundle diff
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  canonicalHash:
+                    type: string
+                  contract:
+                    type: object
+                    properties:
+                      inputApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1alpha1
+                          - enterpriseglue.ai/v1beta1
+                      normalizedApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1beta1
+                      warnings:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                              enum:
+                                - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                                - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                            message:
+                              type: string
+                          required:
+                            - code
+                            - message
+                          additionalProperties: false
+                    required:
+                      - inputApiVersion
+                      - normalizedApiVersion
+                      - warnings
+                    additionalProperties: false
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        path:
+                          type: string
+                        message:
+                          type: string
+                        severity:
+                          type: string
+                          enum:
+                            - error
+                        remediation:
+                          type: string
+                        objectKey:
+                          type: string
+                      required:
+                        - path
+                        - message
+                        - severity
+                        - remediation
+                  counts:
+                    $ref: "#/components/schemas/ActiveSourcesResponse"
+                  expandedRolePermissions:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+                  roleTemplateBaselines:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        copyFromRoleKey:
+                          type: string
+                        fingerprint:
+                          type: string
+                        permissions:
+                          type: array
+                          items:
+                            type: string
+                      required:
+                        - copyFromRoleKey
+                        - fingerprint
+                        - permissions
+                  changes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ConfigBundleDiffChange"
+                  warnings:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        message:
+                          type: string
+                        acknowledgementId:
+                          type: string
+                      required:
+                        - id
+                        - message
+                  requiredAcknowledgements:
+                    type: array
+                    items:
+                      type: string
+                  affectedPrincipals:
+                    type: object
+                    properties:
+                      affectedGroupCount:
+                        type: integer
+                        minimum: 0
+                      affectedUserCount:
+                        type: integer
+                        minimum: 0
+                      externalIdentityMappingChangeCount:
+                        type: integer
+                        minimum: 0
+                    required:
+                      - affectedGroupCount
+                      - affectedUserCount
+                      - externalIdentityMappingChangeCount
+                required:
+                  - valid
+                  - errors
+                  - counts
+                  - changes
+                  - warnings
+                  - requiredAcknowledgements
+                  - affectedPrincipals
+        "422":
+          description: Invalid config bundle input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  canonicalHash:
+                    type: string
+                  contract:
+                    type: object
+                    properties:
+                      inputApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1alpha1
+                          - enterpriseglue.ai/v1beta1
+                      normalizedApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1beta1
+                      warnings:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                              enum:
+                                - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                                - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                            message:
+                              type: string
+                          required:
+                            - code
+                            - message
+                          additionalProperties: false
+                    required:
+                      - inputApiVersion
+                      - normalizedApiVersion
+                      - warnings
+                    additionalProperties: false
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        path:
+                          type: string
+                        message:
+                          type: string
+                        severity:
+                          type: string
+                          enum:
+                            - error
+                        remediation:
+                          type: string
+                        objectKey:
+                          type: string
+                      required:
+                        - path
+                        - message
+                        - severity
+                        - remediation
+                  counts:
+                    $ref: "#/components/schemas/ActiveSourcesResponse"
+                  expandedRolePermissions:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+                  roleTemplateBaselines:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        copyFromRoleKey:
+                          type: string
+                        fingerprint:
+                          type: string
+                        permissions:
+                          type: array
+                          items:
+                            type: string
+                      required:
+                        - copyFromRoleKey
+                        - fingerprint
+                        - permissions
+                  changes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ConfigBundleDiffChange"
+                  warnings:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        message:
+                          type: string
+                        acknowledgementId:
+                          type: string
+                      required:
+                        - id
+                        - message
+                  requiredAcknowledgements:
+                    type: array
+                    items:
+                      type: string
+                  affectedPrincipals:
+                    type: object
+                    properties:
+                      affectedGroupCount:
+                        type: integer
+                        minimum: 0
+                      affectedUserCount:
+                        type: integer
+                        minimum: 0
+                      externalIdentityMappingChangeCount:
+                        type: integer
+                        minimum: 0
+                    required:
+                      - affectedGroupCount
+                      - affectedUserCount
+                      - externalIdentityMappingChangeCount
+                required:
+                  - valid
+                  - errors
+                  - counts
+                  - changes
+                  - warnings
+                  - requiredAcknowledgements
+                  - affectedPrincipals
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/apply:
+    post:
+      operationId: postAuthzConfigBundlesApply
+      tags:
+        - Config Bundles
+      summary: Apply an exact reviewed headless configuration preview
+      description: Applies the exact canonical preview hash. Platform governance is changed only when the raw manifest explicitly declares at least one version-appropriate governance field; omitted v1beta1 governance (or v1alpha1 settings) never claims or resets portal-owned values.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bundle:
+                  nullable: true
+                files:
+                  type: object
+                  additionalProperties:
+                    nullable: true
+                contract:
+                  type: object
+                  properties:
+                    inputApiVersion:
+                      type: string
+                      enum:
+                        - enterpriseglue.ai/v1alpha1
+                        - enterpriseglue.ai/v1beta1
+                    normalizedApiVersion:
+                      type: string
+                      enum:
+                        - enterpriseglue.ai/v1beta1
+                    warnings:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          code:
+                            type: string
+                            enum:
+                              - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                              - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                          message:
+                            type: string
+                        required:
+                          - code
+                          - message
+                        additionalProperties: false
+                  required:
+                    - inputApiVersion
+                    - normalizedApiVersion
+                    - warnings
+                  additionalProperties: false
+                expectedPreviewHash:
+                  type: string
+                  minLength: 1
+                expectedSecretPreflightHash:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                acknowledgements:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 1
+                    maxLength: 500
+                  maxItems: 100
+                idempotencyKey:
+                  type: string
+                  minLength: 8
+                  maxLength: 160
+                expectedTenantScope:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                identityReconciliationMode:
+                  type: string
+                  enum:
+                    - none
+                    - preview
+                    - apply
+                ciProvenance:
+                  type: object
+                  properties:
+                    repository:
+                      type: string
+                      minLength: 3
+                      maxLength: 255
+                      pattern: ^[A-Za-z0-9][A-Za-z0-9_.-]*\/[A-Za-z0-9][A-Za-z0-9_.-]*$
+                    revision:
+                      type: string
+                      pattern: ^[0-9a-f]{40}$/i
+                    workflowRunId:
+                      type: string
+                      minLength: 1
+                      maxLength: 64
+                      pattern: ^[0-9]+$
+                    workflow:
+                      type: string
+                      minLength: 1
+                      maxLength: 160
+                  required:
+                    - repository
+                    - revision
+                    - workflowRunId
+                  additionalProperties: false
+              required:
+                - files
+                - expectedPreviewHash
+              additionalProperties: false
+      responses:
+        "200":
+          description: Applied config bundle with all requested reconciliation complete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  canonicalHash:
+                    type: string
+                  contract:
+                    type: object
+                    properties:
+                      inputApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1alpha1
+                          - enterpriseglue.ai/v1beta1
+                      normalizedApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1beta1
+                      warnings:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                              enum:
+                                - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                                - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                            message:
+                              type: string
+                          required:
+                            - code
+                            - message
+                          additionalProperties: false
+                    required:
+                      - inputApiVersion
+                      - normalizedApiVersion
+                      - warnings
+                    additionalProperties: false
+                  created:
+                    type: integer
+                    minimum: 0
+                  updated:
+                    type: integer
+                    minimum: 0
+                  archived:
+                    type: integer
+                    minimum: 0
+                  changes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ConfigBundleDiffChange"
+                  reconciliation:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - completed
+                      engineSetCount:
+                        type: integer
+                        minimum: 0
+                      runtimeResourceSetCount:
+                        type: integer
+                        minimum: 0
+                      engineCount:
+                        type: integer
+                        minimum: 0
+                      identitySnapshot:
+                        type: object
+                        properties:
+                          mode:
+                            type: string
+                            enum:
+                              - none
+                              - preview
+                              - apply
+                          status:
+                            type: string
+                            enum:
+                              - not_needed
+                              - skipped
+                              - previewed
+                              - completed
+                              - truncated
+                              - failed
+                          providerCount:
+                            type: integer
+                            minimum: 0
+                          scanned:
+                            type: integer
+                            minimum: 0
+                          created:
+                            type: integer
+                            minimum: 0
+                          removed:
+                            type: integer
+                            minimum: 0
+                          failed:
+                            type: integer
+                            minimum: 0
+                        required:
+                          - mode
+                          - status
+                          - providerCount
+                          - scanned
+                          - created
+                          - removed
+                          - failed
+                      runtimeReconciliation:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum:
+                              - not_needed
+                              - queued
+                              - completed
+                              - failed
+                          taskId:
+                            type: string
+                            nullable: true
+                          engineSetCount:
+                            type: integer
+                            minimum: 0
+                          runtimeResourceSetCount:
+                            type: integer
+                            minimum: 0
+                          engineCount:
+                            type: integer
+                            minimum: 0
+                        required:
+                          - status
+                          - taskId
+                          - engineSetCount
+                          - runtimeResourceSetCount
+                          - engineCount
+                    required:
+                      - status
+                      - engineSetCount
+                      - runtimeResourceSetCount
+                      - engineCount
+                      - identitySnapshot
+                      - runtimeReconciliation
+                  idempotent:
+                    type: boolean
+                  applyRunId:
+                    type: string
+                required:
+                  - canonicalHash
+                  - created
+                  - updated
+                  - archived
+                  - changes
+                  - reconciliation
+        "202":
+          description: Applied config bundle with durable identity or runtime reconciliation queued; inspect applyRunId and task receipts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  canonicalHash:
+                    type: string
+                  contract:
+                    type: object
+                    properties:
+                      inputApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1alpha1
+                          - enterpriseglue.ai/v1beta1
+                      normalizedApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1beta1
+                      warnings:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                              enum:
+                                - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                                - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                            message:
+                              type: string
+                          required:
+                            - code
+                            - message
+                          additionalProperties: false
+                    required:
+                      - inputApiVersion
+                      - normalizedApiVersion
+                      - warnings
+                    additionalProperties: false
+                  created:
+                    type: integer
+                    minimum: 0
+                  updated:
+                    type: integer
+                    minimum: 0
+                  archived:
+                    type: integer
+                    minimum: 0
+                  changes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ConfigBundleDiffChange"
+                  reconciliation:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum:
+                          - completed
+                      engineSetCount:
+                        type: integer
+                        minimum: 0
+                      runtimeResourceSetCount:
+                        type: integer
+                        minimum: 0
+                      engineCount:
+                        type: integer
+                        minimum: 0
+                      identitySnapshot:
+                        type: object
+                        properties:
+                          mode:
+                            type: string
+                            enum:
+                              - none
+                              - preview
+                              - apply
+                          status:
+                            type: string
+                            enum:
+                              - not_needed
+                              - skipped
+                              - previewed
+                              - completed
+                              - truncated
+                              - failed
+                          providerCount:
+                            type: integer
+                            minimum: 0
+                          scanned:
+                            type: integer
+                            minimum: 0
+                          created:
+                            type: integer
+                            minimum: 0
+                          removed:
+                            type: integer
+                            minimum: 0
+                          failed:
+                            type: integer
+                            minimum: 0
+                        required:
+                          - mode
+                          - status
+                          - providerCount
+                          - scanned
+                          - created
+                          - removed
+                          - failed
+                      runtimeReconciliation:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum:
+                              - not_needed
+                              - queued
+                              - completed
+                              - failed
+                          taskId:
+                            type: string
+                            nullable: true
+                          engineSetCount:
+                            type: integer
+                            minimum: 0
+                          runtimeResourceSetCount:
+                            type: integer
+                            minimum: 0
+                          engineCount:
+                            type: integer
+                            minimum: 0
+                        required:
+                          - status
+                          - taskId
+                          - engineSetCount
+                          - runtimeResourceSetCount
+                          - engineCount
+                    required:
+                      - status
+                      - engineSetCount
+                      - runtimeResourceSetCount
+                      - engineCount
+                      - identitySnapshot
+                      - runtimeReconciliation
+                  idempotent:
+                    type: boolean
+                  applyRunId:
+                    type: string
+                required:
+                  - canonicalHash
+                  - created
+                  - updated
+                  - archived
+                  - changes
+                  - reconciliation
+        "409":
+          description: Preview hash or ownership conflict
+        "422":
+          description: Invalid or unsupported config bundle
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/governance-ownership:
+    get:
+      operationId: getAuthzConfigBundlesGovernanceOwnership
+      tags:
+        - Config Bundles
+      summary: Read current governance-settings ownership
+      description: Returns only the provenance state needed to create a transfer, release, or retirement preview.
+      responses:
+        "200":
+          description: Current governance ownership state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sourceRef:
+                    type: string
+                    nullable: true
+                  ownershipMode:
+                    type: string
+                    enum:
+                      - manual
+                      - config_locked
+                      - config_warn
+                  sourceHash:
+                    type: string
+                    nullable: true
+                  lastAppliedAt:
+                    type: number
+                    nullable: true
+                  driftStatus:
+                    type: string
+                    nullable: true
+                    enum:
+                      - in_sync
+                      - drifted
+                      - null
+                required:
+                  - sourceRef
+                  - ownershipMode
+                  - sourceHash
+                  - lastAppliedAt
+                  - driftStatus
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/governance-ownership/preview:
+    post:
+      operationId: postAuthzConfigBundlesGovernanceOwnershipPreview
+      tags:
+        - Config Bundles
+      summary: Preview transfer, release, or retirement of governance settings ownership
+      description: Previews only governance-settings provenance. Engines, roles, groups, assignments, identity providers, mappings, and project-engine targets are explicitly preserved.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                operation:
+                  type: string
+                  enum:
+                    - transfer
+                    - release
+                    - retire
+                expectedCurrentSourceRef:
+                  type: string
+                  nullable: true
+                  minLength: 1
+                  maxLength: 500
+                desiredBundleKey:
+                  type: string
+                  minLength: 3
+                  maxLength: 160
+                  pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                desiredOwnershipMode:
+                  type: string
+                  enum:
+                    - config_locked
+                    - config_warn
+                reason:
+                  type: string
+                  minLength: 10
+                  maxLength: 1000
+              required:
+                - operation
+                - expectedCurrentSourceRef
+                - reason
+              additionalProperties: false
+      responses:
+        "200":
+          description: Hash-bound governance ownership preview
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  operation:
+                    type: string
+                    enum:
+                      - transfer
+                      - release
+                      - retire
+                  current:
+                    type: object
+                    properties:
+                      sourceRef:
+                        type: string
+                        nullable: true
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - manual
+                          - config_locked
+                          - config_warn
+                      sourceHash:
+                        type: string
+                        nullable: true
+                      lastAppliedAt:
+                        type: number
+                        nullable: true
+                      driftStatus:
+                        type: string
+                        nullable: true
+                        enum:
+                          - in_sync
+                          - drifted
+                          - null
+                    required:
+                      - sourceRef
+                      - ownershipMode
+                      - sourceHash
+                      - lastAppliedAt
+                      - driftStatus
+                    additionalProperties: false
+                  desired:
+                    type: object
+                    properties:
+                      sourceRef:
+                        type: string
+                        nullable: true
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - manual
+                          - config_locked
+                          - config_warn
+                      sourceHash:
+                        type: string
+                        nullable: true
+                      lastAppliedAt:
+                        type: number
+                        nullable: true
+                      driftStatus:
+                        type: string
+                        nullable: true
+                        enum:
+                          - in_sync
+                          - drifted
+                          - null
+                    required:
+                      - sourceRef
+                      - ownershipMode
+                      - sourceHash
+                      - lastAppliedAt
+                      - driftStatus
+                    additionalProperties: false
+                  affectedFields:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - engineOnboardingMode
+                        - projectEngineTargetMode
+                        - engineAccessAuthority
+                        - projectAccessAuthority
+                        - engineRuntimeAuthorizationMode
+                  preservedObjectTypes:
+                    type: array
+                    items:
+                      type: string
+                  conflicts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                      additionalProperties: false
+                  requiredAcknowledgements:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - governance.settings-only
+                        - governance.preserve-managed-objects
+                        - governance.transfer-to-new-bundle
+                        - governance.release-to-manual
+                        - governance.retire-bundle-without-deleting-objects
+                  noChanges:
+                    type: boolean
+                  previewHash:
+                    type: string
+                    pattern: ^[a-f0-9]{64}$
+                  previewExpiresAt:
+                    type: integer
+                    minimum: 0
+                    exclusiveMinimum: true
+                required:
+                  - operation
+                  - current
+                  - desired
+                  - affectedFields
+                  - preservedObjectTypes
+                  - conflicts
+                  - requiredAcknowledgements
+                  - noChanges
+                  - previewHash
+                  - previewExpiresAt
+                additionalProperties: false
+        "409":
+          description: Current source owner mismatch
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  operation:
+                    type: string
+                    enum:
+                      - transfer
+                      - release
+                      - retire
+                  current:
+                    type: object
+                    properties:
+                      sourceRef:
+                        type: string
+                        nullable: true
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - manual
+                          - config_locked
+                          - config_warn
+                      sourceHash:
+                        type: string
+                        nullable: true
+                      lastAppliedAt:
+                        type: number
+                        nullable: true
+                      driftStatus:
+                        type: string
+                        nullable: true
+                        enum:
+                          - in_sync
+                          - drifted
+                          - null
+                    required:
+                      - sourceRef
+                      - ownershipMode
+                      - sourceHash
+                      - lastAppliedAt
+                      - driftStatus
+                    additionalProperties: false
+                  desired:
+                    type: object
+                    properties:
+                      sourceRef:
+                        type: string
+                        nullable: true
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - manual
+                          - config_locked
+                          - config_warn
+                      sourceHash:
+                        type: string
+                        nullable: true
+                      lastAppliedAt:
+                        type: number
+                        nullable: true
+                      driftStatus:
+                        type: string
+                        nullable: true
+                        enum:
+                          - in_sync
+                          - drifted
+                          - null
+                    required:
+                      - sourceRef
+                      - ownershipMode
+                      - sourceHash
+                      - lastAppliedAt
+                      - driftStatus
+                    additionalProperties: false
+                  affectedFields:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - engineOnboardingMode
+                        - projectEngineTargetMode
+                        - engineAccessAuthority
+                        - projectAccessAuthority
+                        - engineRuntimeAuthorizationMode
+                  preservedObjectTypes:
+                    type: array
+                    items:
+                      type: string
+                  conflicts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                        message:
+                          type: string
+                      required:
+                        - code
+                        - message
+                      additionalProperties: false
+                  requiredAcknowledgements:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - governance.settings-only
+                        - governance.preserve-managed-objects
+                        - governance.transfer-to-new-bundle
+                        - governance.release-to-manual
+                        - governance.retire-bundle-without-deleting-objects
+                  noChanges:
+                    type: boolean
+                  previewHash:
+                    type: string
+                    pattern: ^[a-f0-9]{64}$
+                  previewExpiresAt:
+                    type: integer
+                    minimum: 0
+                    exclusiveMinimum: true
+                required:
+                  - operation
+                  - current
+                  - desired
+                  - affectedFields
+                  - preservedObjectTypes
+                  - conflicts
+                  - requiredAcknowledgements
+                  - noChanges
+                  - previewHash
+                  - previewExpiresAt
+                additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/governance-ownership/apply:
+    post:
+      operationId: postAuthzConfigBundlesGovernanceOwnershipApply
+      tags:
+        - Config Bundles
+      summary: Apply an exact governance ownership preview
+      description: Requires an unexpired hash, every acknowledgement, and an idempotency key. The transaction updates only governance provenance and writes an immutable receipt.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                operation:
+                  type: string
+                  enum:
+                    - transfer
+                    - release
+                    - retire
+                expectedCurrentSourceRef:
+                  type: string
+                  nullable: true
+                  minLength: 1
+                  maxLength: 500
+                desiredBundleKey:
+                  type: string
+                  minLength: 3
+                  maxLength: 160
+                  pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                desiredOwnershipMode:
+                  type: string
+                  enum:
+                    - config_locked
+                    - config_warn
+                reason:
+                  type: string
+                  minLength: 10
+                  maxLength: 1000
+                previewHash:
+                  type: string
+                  pattern: ^[a-f0-9]{64}$
+                previewExpiresAt:
+                  type: integer
+                  minimum: 0
+                  exclusiveMinimum: true
+                acknowledgements:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - governance.settings-only
+                      - governance.preserve-managed-objects
+                      - governance.transfer-to-new-bundle
+                      - governance.release-to-manual
+                      - governance.retire-bundle-without-deleting-objects
+                idempotencyKey:
+                  type: string
+                  minLength: 8
+                  maxLength: 255
+              required:
+                - operation
+                - expectedCurrentSourceRef
+                - reason
+                - previewHash
+                - previewExpiresAt
+                - acknowledgements
+                - idempotencyKey
+              additionalProperties: false
+      responses:
+        "200":
+          description: Governance ownership transfer receipt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  tenantId:
+                    type: string
+                    nullable: true
+                  operation:
+                    type: string
+                    enum:
+                      - transfer
+                      - release
+                      - retire
+                  actorId:
+                    type: string
+                    nullable: true
+                  reason:
+                    type: string
+                  idempotencyKey:
+                    type: string
+                  previewHash:
+                    type: string
+                  current:
+                    type: object
+                    properties:
+                      sourceRef:
+                        type: string
+                        nullable: true
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - manual
+                          - config_locked
+                          - config_warn
+                      sourceHash:
+                        type: string
+                        nullable: true
+                      lastAppliedAt:
+                        type: number
+                        nullable: true
+                      driftStatus:
+                        type: string
+                        nullable: true
+                        enum:
+                          - in_sync
+                          - drifted
+                          - null
+                    required:
+                      - sourceRef
+                      - ownershipMode
+                      - sourceHash
+                      - lastAppliedAt
+                      - driftStatus
+                    additionalProperties: false
+                  desired:
+                    type: object
+                    properties:
+                      sourceRef:
+                        type: string
+                        nullable: true
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - manual
+                          - config_locked
+                          - config_warn
+                      sourceHash:
+                        type: string
+                        nullable: true
+                      lastAppliedAt:
+                        type: number
+                        nullable: true
+                      driftStatus:
+                        type: string
+                        nullable: true
+                        enum:
+                          - in_sync
+                          - drifted
+                          - null
+                    required:
+                      - sourceRef
+                      - ownershipMode
+                      - sourceHash
+                      - lastAppliedAt
+                      - driftStatus
+                    additionalProperties: false
+                  affectedFields:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - engineOnboardingMode
+                        - projectEngineTargetMode
+                        - engineAccessAuthority
+                        - projectAccessAuthority
+                        - engineRuntimeAuthorizationMode
+                  preservedObjectTypes:
+                    type: array
+                    items:
+                      type: string
+                  appliedAt:
+                    type: integer
+                  idempotent:
+                    type: boolean
+                required:
+                  - id
+                  - tenantId
+                  - operation
+                  - actorId
+                  - reason
+                  - idempotencyKey
+                  - previewHash
+                  - current
+                  - desired
+                  - affectedFields
+                  - preservedObjectTypes
+                  - appliedAt
+                additionalProperties: false
+        "409":
+          description: Stale or conflicting preview
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/governance-ownership/receipts:
+    get:
+      operationId: getAuthzConfigBundlesGovernanceOwnershipReceipts
+      tags:
+        - Config Bundles
+      parameters:
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          required: false
+          name: limit
+          in: query
+      responses:
+        "200":
+          description: Immutable governance ownership receipts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    tenantId:
+                      type: string
+                      nullable: true
+                    operation:
+                      type: string
+                      enum:
+                        - transfer
+                        - release
+                        - retire
+                    actorId:
+                      type: string
+                      nullable: true
+                    reason:
+                      type: string
+                    idempotencyKey:
+                      type: string
+                    previewHash:
+                      type: string
+                    current:
+                      type: object
+                      properties:
+                        sourceRef:
+                          type: string
+                          nullable: true
+                        ownershipMode:
+                          type: string
+                          enum:
+                            - manual
+                            - config_locked
+                            - config_warn
+                        sourceHash:
+                          type: string
+                          nullable: true
+                        lastAppliedAt:
+                          type: number
+                          nullable: true
+                        driftStatus:
+                          type: string
+                          nullable: true
+                          enum:
+                            - in_sync
+                            - drifted
+                            - null
+                      required:
+                        - sourceRef
+                        - ownershipMode
+                        - sourceHash
+                        - lastAppliedAt
+                        - driftStatus
+                      additionalProperties: false
+                    desired:
+                      type: object
+                      properties:
+                        sourceRef:
+                          type: string
+                          nullable: true
+                        ownershipMode:
+                          type: string
+                          enum:
+                            - manual
+                            - config_locked
+                            - config_warn
+                        sourceHash:
+                          type: string
+                          nullable: true
+                        lastAppliedAt:
+                          type: number
+                          nullable: true
+                        driftStatus:
+                          type: string
+                          nullable: true
+                          enum:
+                            - in_sync
+                            - drifted
+                            - null
+                      required:
+                        - sourceRef
+                        - ownershipMode
+                        - sourceHash
+                        - lastAppliedAt
+                        - driftStatus
+                      additionalProperties: false
+                    affectedFields:
+                      type: array
+                      items:
+                        type: string
+                        enum:
+                          - engineOnboardingMode
+                          - projectEngineTargetMode
+                          - engineAccessAuthority
+                          - projectAccessAuthority
+                          - engineRuntimeAuthorizationMode
+                    preservedObjectTypes:
+                      type: array
+                      items:
+                        type: string
+                    appliedAt:
+                      type: integer
+                    idempotent:
+                      type: boolean
+                  required:
+                    - id
+                    - tenantId
+                    - operation
+                    - actorId
+                    - reason
+                    - idempotencyKey
+                    - previewHash
+                    - current
+                    - desired
+                    - affectedFields
+                    - preservedObjectTypes
+                    - appliedAt
+                  additionalProperties: false
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/governance-ownership/receipts/{id}:
+    get:
+      operationId: getAuthzConfigBundlesGovernanceOwnershipReceiptsById
+      tags:
+        - Config Bundles
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: One governance ownership receipt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  tenantId:
+                    type: string
+                    nullable: true
+                  operation:
+                    type: string
+                    enum:
+                      - transfer
+                      - release
+                      - retire
+                  actorId:
+                    type: string
+                    nullable: true
+                  reason:
+                    type: string
+                  idempotencyKey:
+                    type: string
+                  previewHash:
+                    type: string
+                  current:
+                    type: object
+                    properties:
+                      sourceRef:
+                        type: string
+                        nullable: true
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - manual
+                          - config_locked
+                          - config_warn
+                      sourceHash:
+                        type: string
+                        nullable: true
+                      lastAppliedAt:
+                        type: number
+                        nullable: true
+                      driftStatus:
+                        type: string
+                        nullable: true
+                        enum:
+                          - in_sync
+                          - drifted
+                          - null
+                    required:
+                      - sourceRef
+                      - ownershipMode
+                      - sourceHash
+                      - lastAppliedAt
+                      - driftStatus
+                    additionalProperties: false
+                  desired:
+                    type: object
+                    properties:
+                      sourceRef:
+                        type: string
+                        nullable: true
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - manual
+                          - config_locked
+                          - config_warn
+                      sourceHash:
+                        type: string
+                        nullable: true
+                      lastAppliedAt:
+                        type: number
+                        nullable: true
+                      driftStatus:
+                        type: string
+                        nullable: true
+                        enum:
+                          - in_sync
+                          - drifted
+                          - null
+                    required:
+                      - sourceRef
+                      - ownershipMode
+                      - sourceHash
+                      - lastAppliedAt
+                      - driftStatus
+                    additionalProperties: false
+                  affectedFields:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - engineOnboardingMode
+                        - projectEngineTargetMode
+                        - engineAccessAuthority
+                        - projectAccessAuthority
+                        - engineRuntimeAuthorizationMode
+                  preservedObjectTypes:
+                    type: array
+                    items:
+                      type: string
+                  appliedAt:
+                    type: integer
+                  idempotent:
+                    type: boolean
+                required:
+                  - id
+                  - tenantId
+                  - operation
+                  - actorId
+                  - reason
+                  - idempotencyKey
+                  - previewHash
+                  - current
+                  - desired
+                  - affectedFields
+                  - preservedObjectTypes
+                  - appliedAt
+                additionalProperties: false
+        "404":
+          description: Governance ownership receipt not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/runs:
+    get:
+      operationId: getAuthzConfigBundlesRuns
+      tags:
+        - Config Bundles
+      parameters:
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          required: false
+          name: limit
+          in: query
+      responses:
+        "200":
+          description: Recent hash-bound configuration bundle applies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConfigBundleApplyRun"
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/runs/{id}:
+    get:
+      operationId: getAuthzConfigBundlesRunsById
+      tags:
+        - Config Bundles
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: One hash-bound configuration bundle apply receipt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfigBundleApplyRun"
+        "404":
+          description: Configuration bundle apply run not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/runs/{id}/identity-replay-tasks:
+    get:
+      operationId: getAuthzConfigBundlesRunsByIdIdentityReplayTasks
+      tags:
+        - Config Bundles
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Durable stored identity replay continuation tasks for one configuration apply, cross-linked to their SSO sync runs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    providerId:
+                      type: string
+                    syncRunId:
+                      type: string
+                      nullable: true
+                    status:
+                      type: string
+                      enum:
+                        - queued
+                        - running
+                        - completed
+                        - cancelled
+                    attempts:
+                      type: integer
+                      minimum: 0
+                    nextAttemptAt:
+                      type: integer
+                      nullable: true
+                    scanned:
+                      type: integer
+                      minimum: 0
+                    created:
+                      type: integer
+                      minimum: 0
+                    removed:
+                      type: integer
+                      minimum: 0
+                    failed:
+                      type: integer
+                      minimum: 0
+                    lastError:
+                      type: string
+                      nullable: true
+                    completedAt:
+                      type: integer
+                      nullable: true
+                    createdAt:
+                      type: integer
+                    updatedAt:
+                      type: integer
+                  required:
+                    - id
+                    - providerId
+                    - syncRunId
+                    - status
+                    - attempts
+                    - nextAttemptAt
+                    - scanned
+                    - created
+                    - removed
+                    - failed
+                    - lastError
+                    - completedAt
+                    - createdAt
+                    - updatedAt
+        "404":
+          description: Configuration bundle apply run not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/runs/{id}/runtime-reconciliation-tasks:
+    get:
+      operationId: getAuthzConfigBundlesRunsByIdRuntimeReconciliationTasks
+      tags:
+        - Config Bundles
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Durable post-apply Engine Set and runtime-resource reconciliation tasks for one configuration apply
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    status:
+                      type: string
+                      enum:
+                        - queued
+                        - running
+                        - completed
+                    attempts:
+                      type: integer
+                      minimum: 0
+                    nextAttemptAt:
+                      type: integer
+                      nullable: true
+                    engineSetIds:
+                      type: array
+                      items:
+                        type: string
+                    runtimeResourceSetIds:
+                      type: array
+                      items:
+                        type: string
+                    engineIds:
+                      type: array
+                      items:
+                        type: string
+                    lastError:
+                      type: string
+                      nullable: true
+                    completedAt:
+                      type: integer
+                      nullable: true
+                    createdAt:
+                      type: integer
+                    updatedAt:
+                      type: integer
+                  required:
+                    - id
+                    - status
+                    - attempts
+                    - nextAttemptAt
+                    - engineSetIds
+                    - runtimeResourceSetIds
+                    - engineIds
+                    - lastError
+                    - completedAt
+                    - createdAt
+                    - updatedAt
+        "404":
+          description: Configuration bundle apply run not found
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+  /api/authz/config-bundles/export:
+    get:
+      operationId: getAuthzConfigBundlesExport
+      tags:
+        - Config Bundles
+      summary: Export source-owned records as a reusable v1beta1 headless bundle
+      description: Exports apply-supported configuration-owned authorization, identity, engine, and deployment-target records. The v1beta1 governance block is included only when this bundle owns the current platform-governance row; otherwise it is omitted. Contract metadata records that the export is already normalized.
+      parameters:
+        - schema:
+            type: string
+          required: true
+          name: bundleKey
+          in: query
+        - schema:
+            type: string
+          required: false
+          name: tenantKey
+          in: query
+      responses:
+        "200":
+          description: Reusable v1beta1 configuration bundle envelope
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bundle:
+                    $ref: "#/components/schemas/ConfigBundle"
+                  files:
+                    $ref: "#/components/schemas/ConfigBundleFiles"
+                  contract:
+                    type: object
+                    properties:
+                      inputApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1alpha1
+                          - enterpriseglue.ai/v1beta1
+                      normalizedApiVersion:
+                        type: string
+                        enum:
+                          - enterpriseglue.ai/v1beta1
+                      warnings:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                              enum:
+                                - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                                - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                            message:
+                              type: string
+                          required:
+                            - code
+                            - message
+                          additionalProperties: false
+                    required:
+                      - inputApiVersion
+                      - normalizedApiVersion
+                      - warnings
+                    additionalProperties: false
+                required:
+                  - bundle
+                  - files
+                  - contract
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Access token returned by the login endpoints, sent as `Authorization: Bearer <token>`."
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: accessToken
+      description: Access token cookie set by the browser login flows. Mutating requests also need the XSRF header.
+  schemas:
+    ActiveSourcesResponse:
+      type: object
+      additionalProperties:
+        type: integer
+        minimum: 0
+    ConfigBootstrapStatus:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum:
+            - disabled
+            - validate
+            - apply
+        status:
+          type: string
+          enum:
+            - disabled
+            - validated
+            - applied
+            - failed
+        hash:
+          type: string
+          nullable: true
+        message:
+          type: string
+          nullable: true
+        reconciliation:
+          type: string
+          enum:
+            - not_run
+            - completed
+            - pending
+        secretPreflight:
+          type: string
+          enum:
+            - not_required
+            - passed
+            - failed
+        issueCode:
+          type: string
+          nullable: true
+          enum:
+            - bundle_path_missing
+            - bundle_read_failed
+            - hash_mismatch
+            - validation_failed
+            - secret_preflight_failed
+            - tenant_scope_missing
+            - apply_failed
+            - identity_reconciliation_failed
+            - null
+      required:
+        - mode
+        - status
+        - hash
+        - message
+        - reconciliation
+        - secretPreflight
+        - issueCode
+    ConfigBundle:
+      oneOf:
+        - type: object
+          properties:
+            apiVersion:
+              type: string
+              enum:
+                - enterpriseglue.ai/v1alpha1
+            kind:
+              type: string
+              enum:
+                - EnterpriseGlueConfigBundle
+            metadata:
+              type: object
+              properties:
+                key:
+                  type: string
+                  minLength: 3
+                  maxLength: 160
+                  pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                description:
+                  type: string
+                  maxLength: 2000
+                owner:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+              required:
+                - key
+                - owner
+              additionalProperties: false
+            tenantKey:
+              type: string
+              minLength: 3
+              maxLength: 160
+              pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+            mode:
+              type: string
+              enum:
+                - additive
+                - authoritative
+                - preview_only
+            imports:
+              type: array
+              items:
+                type: string
+                enum:
+                  - ./platform-settings.json
+                  - ./environment-tags.json
+                  - ./git-providers.json
+                  - ./email-configurations.json
+                  - ./email-templates.json
+                  - ./permissions.json
+                  - ./authorization-policies.json
+                  - ./machine-principals.json
+                  - ./external-engine-systems.json
+                  - ./engines.json
+                  - ./engine-backstop-mappings.json
+                  - ./engine-tenant-mappings.json
+                  - ./engine-sets.json
+                  - ./runtime-resource-sets.json
+                  - ./roles.json
+                  - ./groups.json
+                  - ./assignments.json
+                  - ./identity-providers.json
+                  - ./identity-provisioning-directories.json
+                  - ./identity-mappings.json
+                  - ./project-engine-targets.json
+              minItems: 1
+            settings:
+              type: object
+              properties:
+                engineAccessAuthority:
+                  type: string
+                  enum:
+                    - manual
+                    - transition_to_sso
+                    - sso_managed
+                  default: manual
+                  description: Engine membership and scoped assignment authority. This does not register engines or change runtime scope.
+                projectAccessAuthority:
+                  type: string
+                  enum:
+                    - manual
+                    - transition_to_sso
+                    - sso_managed
+                  default: manual
+                  description: Project membership and scoped assignment authority. This does not control project creation.
+                engineOnboardingMode:
+                  type: string
+                  enum:
+                    - manual_allowed
+                    - external_only
+                    - hybrid
+                  default: manual_allowed
+                  description: Manual engine inventory policy. Engine records remain in ./engines.json or the external registration API.
+                projectEngineTargetMode:
+                  type: string
+                  enum:
+                    - manual_allowed
+                    - external_only
+                    - hybrid
+                  default: manual_allowed
+                  description: Manual project-engine target policy. This is separate from engine membership and project creation.
+                engineRuntimeAuthorizationMode:
+                  type: string
+                  enum:
+                    - enterpriseglue_authoritative
+                    - mirrored_engine_backstop
+                  default: enterpriseglue_authoritative
+                  description: Runtime authorization authority; runtimeAccessScope remains a per-engine field in ./engines.json.
+                ownershipMode:
+                  type: string
+                  enum:
+                    - config_locked
+                    - config_warn
+                    - manual
+                  default: config_locked
+                  description: Ownership of this settings block only, not ownership of engine, member, group, or assignment rows.
+              default:
+                engineAccessAuthority: manual
+                projectAccessAuthority: manual
+                engineOnboardingMode: manual_allowed
+                projectEngineTargetMode: manual_allowed
+                engineRuntimeAuthorizationMode: enterpriseglue_authoritative
+                ownershipMode: config_locked
+              additionalProperties: false
+              description: Deprecated v1alpha1 governance aliases. Use the v1beta1 governance block for new bundles.
+          required:
+            - apiVersion
+            - kind
+            - metadata
+            - tenantKey
+            - mode
+            - imports
+          additionalProperties: false
+        - type: object
+          properties:
+            apiVersion:
+              type: string
+              enum:
+                - enterpriseglue.ai/v1beta1
+            kind:
+              type: string
+              enum:
+                - EnterpriseGlueConfigBundle
+            metadata:
+              type: object
+              properties:
+                key:
+                  type: string
+                  minLength: 3
+                  maxLength: 160
+                  pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                description:
+                  type: string
+                  maxLength: 2000
+                owner:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+              required:
+                - key
+                - owner
+              additionalProperties: false
+            tenantKey:
+              type: string
+              minLength: 3
+              maxLength: 160
+              pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+            mode:
+              type: string
+              enum:
+                - additive
+                - authoritative
+                - preview_only
+            imports:
+              type: array
+              items:
+                type: string
+                enum:
+                  - ./platform-settings.json
+                  - ./environment-tags.json
+                  - ./git-providers.json
+                  - ./email-configurations.json
+                  - ./email-templates.json
+                  - ./permissions.json
+                  - ./authorization-policies.json
+                  - ./machine-principals.json
+                  - ./external-engine-systems.json
+                  - ./engines.json
+                  - ./engine-backstop-mappings.json
+                  - ./engine-tenant-mappings.json
+                  - ./engine-sets.json
+                  - ./runtime-resource-sets.json
+                  - ./roles.json
+                  - ./groups.json
+                  - ./assignments.json
+                  - ./identity-providers.json
+                  - ./identity-provisioning-directories.json
+                  - ./identity-mappings.json
+                  - ./project-engine-targets.json
+              minItems: 1
+            governance:
+              type: object
+              properties:
+                engineMembershipAuthority:
+                  type: string
+                  enum:
+                    - manual
+                    - transition_to_sso
+                    - sso_managed
+                  default: manual
+                  description: Authority for engine membership and scoped engine assignments only.
+                projectMembershipAuthority:
+                  type: string
+                  enum:
+                    - manual
+                    - transition_to_sso
+                    - sso_managed
+                  default: manual
+                  description: Authority for project membership and scoped project assignments only.
+                engineRegistrationPolicy:
+                  type: string
+                  enum:
+                    - manual_allowed
+                    - external_only
+                    - hybrid
+                  default: manual_allowed
+                  description: Policy for registering engine inventory; unrelated to membership authority.
+                projectEngineTargetPolicy:
+                  type: string
+                  enum:
+                    - manual_allowed
+                    - external_only
+                    - hybrid
+                  default: manual_allowed
+                  description: Policy for managing project-to-engine deployment targets.
+                runtimeAuthorizationAuthority:
+                  type: string
+                  enum:
+                    - enterpriseglue_authoritative
+                    - mirrored_engine_backstop
+                  default: enterpriseglue_authoritative
+                  description: Authority for runtime-resource authorization decisions.
+                governanceSettingsOwnership:
+                  type: string
+                  enum:
+                    - config_locked
+                    - config_warn
+                    - manual
+                  default: config_locked
+                  description: Ownership of this governance block only, never ownership of managed object rows.
+              default:
+                engineMembershipAuthority: manual
+                projectMembershipAuthority: manual
+                engineRegistrationPolicy: manual_allowed
+                projectEngineTargetPolicy: manual_allowed
+                runtimeAuthorizationAuthority: enterpriseglue_authoritative
+                governanceSettingsOwnership: config_locked
+              additionalProperties: false
+              description: Optional platform governance policy. Omit it when this bundle must not claim or reset governance settings.
+            login:
+              type: object
+              properties:
+                localPassword:
+                  type: string
+                  enum:
+                    - auto
+                    - enabled
+                    - disabled
+                  description: Whether ordinary local password sign-in is automatic, always enabled, or disabled.
+                providerSelection:
+                  type: string
+                  enum:
+                    - auto_redirect_single
+                    - chooser
+                    - progressive
+                  description: Whether to redirect a single provider, always show a chooser, or use email-domain discovery.
+              required:
+                - localPassword
+                - providerSelection
+              additionalProperties: false
+              description: Optional ordinary-user login policy. Administrator recovery is intentionally configured separately and cannot be disabled by this block.
+          required:
+            - apiVersion
+            - kind
+            - metadata
+            - tenantKey
+            - mode
+            - imports
+          additionalProperties: false
+    ConfigBundleApplyRun:
+      type: object
+      properties:
+        id:
+          type: string
+        bundleKey:
+          type: string
+        bundleApiVersion:
+          type: string
+          nullable: true
+        idempotencyKey:
+          type: string
+          nullable: true
+        actorId:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+            - pending
+            - succeeded
+            - failed
+        errorMessage:
+          type: string
+          nullable: true
+        completedAt:
+          type: number
+          nullable: true
+        createdAt:
+          type: number
+        canonicalHash:
+          type: string
+        contract:
+          type: object
+          properties:
+            inputApiVersion:
+              type: string
+              enum:
+                - enterpriseglue.ai/v1alpha1
+                - enterpriseglue.ai/v1beta1
+            normalizedApiVersion:
+              type: string
+              enum:
+                - enterpriseglue.ai/v1beta1
+            warnings:
+              type: array
+              items:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                      - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                  message:
+                    type: string
+                required:
+                  - code
+                  - message
+                additionalProperties: false
+          required:
+            - inputApiVersion
+            - normalizedApiVersion
+            - warnings
+          additionalProperties: false
+        created:
+          type: integer
+          minimum: 0
+        updated:
+          type: integer
+          minimum: 0
+        archived:
+          type: integer
+          minimum: 0
+        reconciliation:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - completed
+            engineSetCount:
+              type: integer
+              minimum: 0
+            runtimeResourceSetCount:
+              type: integer
+              minimum: 0
+            engineCount:
+              type: integer
+              minimum: 0
+            identitySnapshot:
+              type: object
+              properties:
+                mode:
+                  type: string
+                  enum:
+                    - none
+                    - preview
+                    - apply
+                status:
+                  type: string
+                  enum:
+                    - not_needed
+                    - skipped
+                    - previewed
+                    - completed
+                    - truncated
+                    - failed
+                providerCount:
+                  type: integer
+                  minimum: 0
+                scanned:
+                  type: integer
+                  minimum: 0
+                created:
+                  type: integer
+                  minimum: 0
+                removed:
+                  type: integer
+                  minimum: 0
+                failed:
+                  type: integer
+                  minimum: 0
+              required:
+                - mode
+                - status
+                - providerCount
+                - scanned
+                - created
+                - removed
+                - failed
+            runtimeReconciliation:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - not_needed
+                    - queued
+                    - completed
+                    - failed
+                taskId:
+                  type: string
+                  nullable: true
+                engineSetCount:
+                  type: integer
+                  minimum: 0
+                runtimeResourceSetCount:
+                  type: integer
+                  minimum: 0
+                engineCount:
+                  type: integer
+                  minimum: 0
+              required:
+                - status
+                - taskId
+                - engineSetCount
+                - runtimeResourceSetCount
+                - engineCount
+          required:
+            - status
+            - engineSetCount
+            - runtimeResourceSetCount
+            - engineCount
+            - identitySnapshot
+            - runtimeReconciliation
+        mode:
+          type: string
+          nullable: true
+          enum:
+            - additive
+            - authoritative
+            - preview_only
+            - null
+        changes:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfigBundleDiffChange"
+        bootstrap:
+          $ref: "#/components/schemas/ConfigBootstrapStatus"
+      required:
+        - id
+        - bundleKey
+        - bundleApiVersion
+        - idempotencyKey
+        - actorId
+        - status
+        - errorMessage
+        - completedAt
+        - createdAt
+        - canonicalHash
+    ConfigBundleDiffChange:
+      type: object
+      properties:
+        objectType:
+          type: string
+          enum:
+            - environment_tag
+            - git_provider
+            - email_configuration
+            - email_template
+            - permission
+            - authorization_policy
+            - api_client
+            - service_account
+            - external_engine_system
+            - role
+            - group
+            - engine
+            - engine_tenant_mapping
+            - engine_set
+            - runtime_resource_set
+            - engine_backstop_mapping
+            - identity_provider
+            - identity_mapping
+            - project_engine_target
+            - assignment
+            - identity_provisioning_directory
+            - platform_settings
+        key:
+          type: string
+        operation:
+          type: string
+          enum:
+            - create
+            - update
+            - noop
+            - archive
+            - conflict
+        reason:
+          type: string
+        currentId:
+          type: string
+        expectedUpdatedAt:
+          type: number
+        expectedOwnershipGeneration:
+          type: integer
+          minimum: 0
+        permissionChanges:
+          type: object
+          properties:
+            additions:
+              type: array
+              items:
+                type: string
+            removals:
+              type: array
+              items:
+                type: string
+            effectivePermissions:
+              type: array
+              items:
+                type: string
+          required:
+            - additions
+            - removals
+            - effectivePermissions
+        affectedAssignmentCount:
+          type: integer
+          minimum: 0
+        runtimeResourceChanges:
+          type: object
+          properties:
+            matchedCount:
+              type: integer
+              minimum: 0
+            unmatchedCount:
+              type: integer
+              minimum: 0
+            currentlyMaterialized:
+              type: array
+              items:
+                type: object
+                properties:
+                  resourceKind:
+                    type: string
+                  resourceKey:
+                    type: string
+                  runtimeTenantId:
+                    type: string
+                    nullable: true
+                required:
+                  - resourceKind
+                  - resourceKey
+                  - runtimeTenantId
+            newlyMatched:
+              type: array
+              items:
+                type: object
+                properties:
+                  resourceKind:
+                    type: string
+                  resourceKey:
+                    type: string
+                  runtimeTenantId:
+                    type: string
+                    nullable: true
+                required:
+                  - resourceKind
+                  - resourceKey
+                  - runtimeTenantId
+            noLongerMatched:
+              type: array
+              items:
+                type: object
+                properties:
+                  resourceKind:
+                    type: string
+                  resourceKey:
+                    type: string
+                  runtimeTenantId:
+                    type: string
+                    nullable: true
+                required:
+                  - resourceKind
+                  - resourceKey
+                  - runtimeTenantId
+            unmatchedSelectors:
+              type: array
+              items:
+                type: string
+            detailsTruncated:
+              type: boolean
+          required:
+            - matchedCount
+            - unmatchedCount
+            - currentlyMaterialized
+            - newlyMatched
+            - noLongerMatched
+            - unmatchedSelectors
+            - detailsTruncated
+        identitySnapshotPreview:
+          type: object
+          properties:
+            scanned:
+              type: integer
+              minimum: 0
+            matches:
+              type: integer
+              minimum: 0
+            nonMatches:
+              type: integer
+              minimum: 0
+            failed:
+              type: integer
+              minimum: 0
+            truncated:
+              type: boolean
+            latestSnapshotAt:
+              type: number
+              nullable: true
+            warnings:
+              type: array
+              items:
+                type: string
+          required:
+            - scanned
+            - matches
+            - nonMatches
+            - failed
+            - truncated
+            - latestSnapshotAt
+            - warnings
+      required:
+        - objectType
+        - key
+        - operation
+        - reason
+    ConfigBundleFiles:
+      type: object
+      properties:
+        ./roles.json:
+          type: object
+          properties:
+            roles:
+              type: array
+              items:
+                anyOf:
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        minLength: 3
+                        maxLength: 160
+                        pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      description:
+                        type: string
+                        maxLength: 2000
+                      scope:
+                        type: string
+                        enum:
+                          - platform
+                          - tenant
+                          - project
+                          - engine
+                          - engine_runtime_resource
+                      permissions:
+                        type: array
+                        items:
+                          type: string
+                          minLength: 3
+                          maxLength: 255
+                          pattern: ^[a-z][a-z0-9-]*(?::[a-z0-9-]+)+$
+                        minItems: 1
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - config_locked
+                          - config_warn
+                          - manual
+                    required:
+                      - key
+                      - name
+                      - scope
+                      - permissions
+                    additionalProperties: false
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        minLength: 3
+                        maxLength: 160
+                        pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      description:
+                        type: string
+                        maxLength: 2000
+                      scope:
+                        type: string
+                        enum:
+                          - platform
+                          - tenant
+                          - project
+                          - engine
+                          - engine_runtime_resource
+                      copyFromRoleKey:
+                        type: string
+                        minLength: 3
+                        maxLength: 160
+                        pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                      addPermissions:
+                        type: array
+                        items:
+                          type: string
+                          minLength: 3
+                          maxLength: 255
+                          pattern: ^[a-z][a-z0-9-]*(?::[a-z0-9-]+)+$
+                        default: []
+                      removePermissions:
+                        type: array
+                        items:
+                          type: string
+                          minLength: 3
+                          maxLength: 255
+                          pattern: ^[a-z][a-z0-9-]*(?::[a-z0-9-]+)+$
+                        default: []
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - config_locked
+                          - config_warn
+                          - manual
+                    required:
+                      - key
+                      - name
+                      - scope
+                      - copyFromRoleKey
+                    additionalProperties: false
+          required:
+            - roles
+          additionalProperties: false
+        ./groups.json:
+          type: object
+          properties:
+            groups:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                  description:
+                    type: string
+                    maxLength: 2000
+                  ownershipMode:
+                    type: string
+                    enum:
+                      - config_locked
+                      - config_warn
+                      - manual
+                required:
+                  - key
+                  - name
+                additionalProperties: false
+          required:
+            - groups
+          additionalProperties: false
+        ./engines.json:
+          type: object
+          properties:
+            engines:
+              type: array
+              items:
+                $ref: "#/components/schemas/ConfigEngineRegistration"
+          required:
+            - engines
+          additionalProperties: false
+        ./engine-backstop-mappings.json:
+          type: object
+          properties:
+            engineBackstopMappings:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  engineRef:
+                    type: object
+                    properties:
+                      engineKey:
+                        type: string
+                        minLength: 3
+                        maxLength: 160
+                        pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                    required:
+                      - engineKey
+                    additionalProperties: false
+                  groupRef:
+                    type: object
+                    properties:
+                      groupKey:
+                        type: string
+                        minLength: 3
+                        maxLength: 160
+                        pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                    required:
+                      - groupKey
+                    additionalProperties: false
+                  nativeGroupIdRef:
+                    type: string
+                    minLength: 1
+                    maxLength: 512
+                    pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+                  isActive:
+                    type: boolean
+                    default: true
+                  ownershipMode:
+                    type: string
+                    enum:
+                      - config_locked
+                      - config_warn
+                    default: config_locked
+                required:
+                  - key
+                  - engineRef
+                  - groupRef
+                  - nativeGroupIdRef
+                additionalProperties: false
+          required:
+            - engineBackstopMappings
+          additionalProperties: false
+        ./engine-tenant-mappings.json:
+          type: object
+          properties:
+            engineTenantMappings:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  engineRef:
+                    type: object
+                    properties:
+                      engineKey:
+                        type: string
+                        minLength: 3
+                        maxLength: 160
+                        pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                    required:
+                      - engineKey
+                    additionalProperties: false
+                  externalTenantId:
+                    type: string
+                    maxLength: 255
+                    default: ""
+                  tenantRef:
+                    $ref: "#/components/schemas/EngineTenantReference"
+                  strategy:
+                    $ref: "#/components/schemas/EngineTenantMappingStrategy"
+                  active:
+                    type: boolean
+                    default: true
+                  ownershipMode:
+                    type: string
+                    enum:
+                      - config_locked
+                      - config_warn
+                    default: config_locked
+                required:
+                  - key
+                  - engineRef
+                  - tenantRef
+                  - strategy
+                additionalProperties: false
+          required:
+            - engineTenantMappings
+          additionalProperties: false
+        ./engine-sets.json:
+          type: object
+          properties:
+            engineSets:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                  description:
+                    type: string
+                    maxLength: 2000
+                  selector:
+                    oneOf:
+                      - type: object
+                        properties:
+                          mode:
+                            type: string
+                            enum:
+                              - all
+                        required:
+                          - mode
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          mode:
+                            type: string
+                            enum:
+                              - engine_ids
+                          engineKeys:
+                            type: array
+                            items:
+                              type: string
+                              minLength: 3
+                              maxLength: 160
+                              pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                            minItems: 1
+                        required:
+                          - mode
+                          - engineKeys
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          mode:
+                            type: string
+                            enum:
+                              - labels
+                          labels:
+                            type: object
+                            additionalProperties:
+                              type: string
+                              minLength: 1
+                              maxLength: 512
+                          labelMatch:
+                            type: string
+                            enum:
+                              - all
+                              - any
+                            default: all
+                        required:
+                          - mode
+                          - labels
+                        additionalProperties: false
+                  ownershipMode:
+                    type: string
+                    enum:
+                      - config_locked
+                      - config_warn
+                      - manual
+                required:
+                  - key
+                  - name
+                  - selector
+                additionalProperties: false
+          required:
+            - engineSets
+          additionalProperties: false
+        ./runtime-resource-sets.json:
+          type: object
+          properties:
+            runtimeResourceSets:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                  description:
+                    type: string
+                    maxLength: 2000
+                  engineRef:
+                    type: object
+                    properties:
+                      engineKey:
+                        type: string
+                        minLength: 3
+                        maxLength: 160
+                        pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                    required:
+                      - engineKey
+                    additionalProperties: false
+                  resourceKind:
+                    type: string
+                    enum:
+                      - process_definition
+                      - decision_definition
+                  selector:
+                    oneOf:
+                      - type: object
+                        properties:
+                          mode:
+                            type: string
+                            enum:
+                              - keys
+                          keys:
+                            type: array
+                            items:
+                              type: string
+                              minLength: 1
+                              maxLength: 255
+                            minItems: 1
+                        required:
+                          - mode
+                          - keys
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          mode:
+                            type: string
+                            enum:
+                              - prefix
+                          prefix:
+                            type: string
+                            minLength: 1
+                            maxLength: 255
+                        required:
+                          - mode
+                          - prefix
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          mode:
+                            type: string
+                            enum:
+                              - labels
+                          labels:
+                            type: object
+                            additionalProperties:
+                              type: string
+                              minLength: 1
+                              maxLength: 512
+                          labelMatch:
+                            type: string
+                            enum:
+                              - all
+                              - any
+                            default: all
+                        required:
+                          - mode
+                          - labels
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          mode:
+                            type: string
+                            enum:
+                              - project_lineage
+                          projectRef:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                format: uuid
+                            required:
+                              - id
+                            additionalProperties: false
+                        required:
+                          - mode
+                          - projectRef
+                        additionalProperties: false
+                  runtimeTenantId:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                  ownershipMode:
+                    type: string
+                    enum:
+                      - config_locked
+                      - config_warn
+                      - manual
+                required:
+                  - key
+                  - name
+                  - engineRef
+                  - resourceKind
+                  - selector
+                additionalProperties: false
+          required:
+            - runtimeResourceSets
+          additionalProperties: false
+        ./assignments.json:
+          type: object
+          properties:
+            assignments:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  principal:
+                    oneOf:
+                      - type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - group
+                          key:
+                            type: string
+                            minLength: 3
+                            maxLength: 160
+                            pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                        required:
+                          - type
+                          - key
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - user
+                          id:
+                            type: string
+                            format: uuid
+                        required:
+                          - type
+                          - id
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - api_client
+                          key:
+                            type: string
+                            minLength: 3
+                            maxLength: 160
+                            pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                          id:
+                            type: string
+                            format: uuid
+                        required:
+                          - type
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - service_account
+                          key:
+                            type: string
+                            minLength: 3
+                            maxLength: 160
+                            pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                          id:
+                            type: string
+                            format: uuid
+                        required:
+                          - type
+                        additionalProperties: false
+                  roleKey:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  scope:
+                    oneOf:
+                      - type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - platform
+                        required:
+                          - type
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - tenant
+                        required:
+                          - type
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - project
+                          projectRef:
+                            type: object
+                            properties:
+                              id:
+                                type: string
+                                format: uuid
+                            required:
+                              - id
+                            additionalProperties: false
+                        required:
+                          - type
+                          - projectRef
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - engine
+                          engineKey:
+                            type: string
+                            minLength: 3
+                            maxLength: 160
+                            pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                        required:
+                          - type
+                          - engineKey
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - engine_set
+                          engineSetKey:
+                            type: string
+                            minLength: 3
+                            maxLength: 160
+                            pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                        required:
+                          - type
+                          - engineSetKey
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - engine_runtime_resource
+                          engineKey:
+                            type: string
+                            minLength: 3
+                            maxLength: 160
+                            pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                          resourceKind:
+                            type: string
+                            enum:
+                              - process_definition
+                              - decision_definition
+                          resourceKey:
+                            type: string
+                            minLength: 1
+                            maxLength: 255
+                          runtimeTenantId:
+                            type: string
+                            minLength: 1
+                            maxLength: 255
+                        required:
+                          - type
+                          - engineKey
+                          - resourceKind
+                          - resourceKey
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          type:
+                            type: string
+                            enum:
+                              - engine_runtime_resource_set
+                          runtimeResourceSetKey:
+                            type: string
+                            minLength: 3
+                            maxLength: 160
+                            pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                        required:
+                          - type
+                          - runtimeResourceSetKey
+                        additionalProperties: false
+                  expiresAt:
+                    type: integer
+                    minimum: 0
+                    exclusiveMinimum: true
+                  ownershipMode:
+                    type: string
+                    enum:
+                      - config_locked
+                      - config_warn
+                      - manual
+                required:
+                  - principal
+                  - roleKey
+                  - scope
+                additionalProperties: false
+          required:
+            - assignments
+          additionalProperties: false
+        ./project-engine-targets.json:
+          type: object
+          properties:
+            projectEngineTargets:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  projectRef:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                    required:
+                      - id
+                    additionalProperties: false
+                  engineRef:
+                    type: object
+                    properties:
+                      engineKey:
+                        type: string
+                        minLength: 3
+                        maxLength: 160
+                        pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                    required:
+                      - engineKey
+                    additionalProperties: false
+                  status:
+                    type: string
+                    enum:
+                      - active
+                      - disabled
+                    default: active
+                  allowManualDeploy:
+                    type: boolean
+                    default: false
+                  allowCiDeploy:
+                    type: boolean
+                    default: false
+                  allowApiDeploy:
+                    type: boolean
+                    default: false
+                  allowImport:
+                    type: boolean
+                    default: false
+                  ownershipMode:
+                    type: string
+                    enum:
+                      - config_locked
+                      - config_warn
+                      - manual
+                  transferOwnership:
+                    type: object
+                    properties:
+                      reason:
+                        type: string
+                        minLength: 8
+                        maxLength: 1000
+                    required:
+                      - reason
+                    additionalProperties: false
+                required:
+                  - projectRef
+                  - engineRef
+                additionalProperties: false
+          required:
+            - projectEngineTargets
+          additionalProperties: false
+        ./identity-providers.json:
+          type: object
+          properties:
+            identityProviders:
+              type: array
+              items:
+                oneOf:
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        minLength: 3
+                        maxLength: 160
+                        pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                      displayName:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      organization:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      displayOrder:
+                        type: integer
+                        minimum: 0
+                        maximum: 10000
+                        default: 0
+                      preferred:
+                        type: boolean
+                        default: false
+                      loginDomains:
+                        type: array
+                        items:
+                          type: string
+                          maxLength: 253
+                          pattern: ^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+                        maxItems: 20
+                        default: []
+                      enabled:
+                        type: boolean
+                        default: true
+                      authenticationMode:
+                        type: string
+                        enum:
+                          - direct
+                          - claims_only
+                        default: claims_only
+                      allowVerifiedEmailLinking:
+                        type: boolean
+                        default: false
+                        description: Single-tenant compatibility option. In pooled mode, verified email alone never links an existing shared account; independent account-control verification is required.
+                      authorizationAttributeKeys:
+                        type: array
+                        items:
+                          type: string
+                          pattern: ^[A-Za-z][A-Za-z0-9_.-]{0,127}$
+                        maxItems: 20
+                      directoryTenantId:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      sync:
+                        type: object
+                        properties:
+                          triggers:
+                            type: array
+                            items:
+                              type: string
+                              enum:
+                                - login
+                                - scheduled
+                                - manual
+                            minItems: 1
+                          intervalSeconds:
+                            type: integer
+                            minimum: 60
+                            maximum: 86400
+                          requiredForLogin:
+                            type: boolean
+                            enum:
+                              - true
+                            default: true
+                          incompleteEntitlements:
+                            type: string
+                            enum:
+                              - fail_closed
+                            default: fail_closed
+                          connectorCapability:
+                            type: string
+                            enum:
+                              - claim_only
+                              - ldap_directory
+                            default: claim_only
+                          scheduled:
+                            type: boolean
+                            default: false
+                        required:
+                          - triggers
+                        additionalProperties: false
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - config_locked
+                          - config_warn
+                          - manual
+                      type:
+                        type: string
+                        enum:
+                          - oidc
+                      oidc:
+                        $ref: "#/components/schemas/OidcIdentityProviderConfiguration"
+                    required:
+                      - key
+                      - sync
+                      - type
+                      - oidc
+                    additionalProperties: false
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        minLength: 3
+                        maxLength: 160
+                        pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                      displayName:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      organization:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      displayOrder:
+                        type: integer
+                        minimum: 0
+                        maximum: 10000
+                        default: 0
+                      preferred:
+                        type: boolean
+                        default: false
+                      loginDomains:
+                        type: array
+                        items:
+                          type: string
+                          maxLength: 253
+                          pattern: ^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+                        maxItems: 20
+                        default: []
+                      enabled:
+                        type: boolean
+                        default: true
+                      authenticationMode:
+                        type: string
+                        enum:
+                          - direct
+                          - claims_only
+                        default: claims_only
+                      allowVerifiedEmailLinking:
+                        type: boolean
+                        default: false
+                        description: Single-tenant compatibility option. In pooled mode, verified email alone never links an existing shared account; independent account-control verification is required.
+                      authorizationAttributeKeys:
+                        type: array
+                        items:
+                          type: string
+                          pattern: ^[A-Za-z][A-Za-z0-9_.-]{0,127}$
+                        maxItems: 20
+                      directoryTenantId:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      sync:
+                        type: object
+                        properties:
+                          triggers:
+                            type: array
+                            items:
+                              type: string
+                              enum:
+                                - login
+                                - scheduled
+                                - manual
+                            minItems: 1
+                          intervalSeconds:
+                            type: integer
+                            minimum: 60
+                            maximum: 86400
+                          requiredForLogin:
+                            type: boolean
+                            enum:
+                              - true
+                            default: true
+                          incompleteEntitlements:
+                            type: string
+                            enum:
+                              - fail_closed
+                            default: fail_closed
+                          connectorCapability:
+                            type: string
+                            enum:
+                              - claim_only
+                              - ldap_directory
+                            default: claim_only
+                          scheduled:
+                            type: boolean
+                            default: false
+                        required:
+                          - triggers
+                        additionalProperties: false
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - config_locked
+                          - config_warn
+                          - manual
+                      type:
+                        type: string
+                        enum:
+                          - saml
+                      saml:
+                        $ref: "#/components/schemas/SamlIdentityProviderConfiguration"
+                    required:
+                      - key
+                      - sync
+                      - type
+                      - saml
+                    additionalProperties: false
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        minLength: 3
+                        maxLength: 160
+                        pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                      displayName:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      organization:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      displayOrder:
+                        type: integer
+                        minimum: 0
+                        maximum: 10000
+                        default: 0
+                      preferred:
+                        type: boolean
+                        default: false
+                      loginDomains:
+                        type: array
+                        items:
+                          type: string
+                          maxLength: 253
+                          pattern: ^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$
+                        maxItems: 20
+                        default: []
+                      enabled:
+                        type: boolean
+                        default: true
+                      authenticationMode:
+                        type: string
+                        enum:
+                          - direct
+                          - claims_only
+                        default: direct
+                      allowVerifiedEmailLinking:
+                        type: boolean
+                        default: false
+                        description: Single-tenant compatibility option. In pooled mode, verified email alone never links an existing shared account; independent account-control verification is required.
+                      authorizationAttributeKeys:
+                        type: array
+                        items:
+                          type: string
+                          pattern: ^[A-Za-z][A-Za-z0-9_.-]{0,127}$
+                        maxItems: 20
+                      directoryTenantId:
+                        type: string
+                        minLength: 1
+                        maxLength: 255
+                      sync:
+                        type: object
+                        properties:
+                          triggers:
+                            type: array
+                            items:
+                              type: string
+                              enum:
+                                - login
+                                - scheduled
+                                - manual
+                            minItems: 1
+                          intervalSeconds:
+                            type: integer
+                            minimum: 60
+                            maximum: 86400
+                          requiredForLogin:
+                            type: boolean
+                            enum:
+                              - true
+                            default: true
+                          incompleteEntitlements:
+                            type: string
+                            enum:
+                              - fail_closed
+                            default: fail_closed
+                          connectorCapability:
+                            type: string
+                            enum:
+                              - claim_only
+                              - ldap_directory
+                            default: claim_only
+                          scheduled:
+                            type: boolean
+                            default: false
+                        required:
+                          - triggers
+                        additionalProperties: false
+                      ownershipMode:
+                        type: string
+                        enum:
+                          - config_locked
+                          - config_warn
+                          - manual
+                      type:
+                        type: string
+                        enum:
+                          - ldap
+                      ldap:
+                        $ref: "#/components/schemas/LdapIdentityProviderConfiguration"
+                    required:
+                      - key
+                      - sync
+                      - type
+                      - ldap
+                    additionalProperties: false
+          required:
+            - identityProviders
+          additionalProperties: false
+        ./identity-provisioning-directories.json:
+          type: object
+          properties:
+            identityProvisioningDirectories:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  displayName:
+                    type: string
+                    minLength: 1
+                    maxLength: 255
+                  description:
+                    type: string
+                    nullable: true
+                    maxLength: 1000
+                  identityProviderKey:
+                    type: string
+                    nullable: true
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  enabled:
+                    type: boolean
+                    default: false
+                  authoritative:
+                    type: boolean
+                    enum:
+                      - true
+                    default: true
+                  credentialSecretRef:
+                    type: string
+                    minLength: 1
+                    maxLength: 512
+                    pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+                  ownershipMode:
+                    type: string
+                    enum:
+                      - config_locked
+                      - config_warn
+                    default: config_locked
+                required:
+                  - key
+                  - displayName
+                additionalProperties: false
+              maxItems: 10
+          required:
+            - identityProvisioningDirectories
+          additionalProperties: false
+        ./identity-mappings.json:
+          type: object
+          properties:
+            identityMappings:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  providerKey:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  source:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                          - group
+                          - role
+                          - attribute
+                          - authenticated
+                      externalId:
+                        type: string
+                        minLength: 1
+                        maxLength: 2000
+                      operator:
+                        type: string
+                        enum:
+                          - exact
+                          - contains
+                          - exists
+                        default: exact
+                    required:
+                      - type
+                    additionalProperties: false
+                  targetGroupKey:
+                    type: string
+                    minLength: 3
+                    maxLength: 160
+                    pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+                  syncMode:
+                    type: string
+                    enum:
+                      - additive
+                      - authoritative
+                    default: authoritative
+                  ownershipMode:
+                    type: string
+                    enum:
+                      - config_locked
+                      - config_warn
+                      - manual
+                required:
+                  - key
+                  - providerKey
+                  - source
+                  - targetGroupKey
+                additionalProperties: false
+          required:
+            - identityMappings
+          additionalProperties: false
+      additionalProperties: false
+    ConfigBundleRequest:
+      type: object
+      properties:
+        bundle:
+          $ref: "#/components/schemas/ConfigBundle"
+        files:
+          $ref: "#/components/schemas/ConfigBundleFiles"
+        contract:
+          type: object
+          properties:
+            inputApiVersion:
+              type: string
+              enum:
+                - enterpriseglue.ai/v1alpha1
+                - enterpriseglue.ai/v1beta1
+            normalizedApiVersion:
+              type: string
+              enum:
+                - enterpriseglue.ai/v1beta1
+            warnings:
+              type: array
+              items:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    enum:
+                      - CONFIG_BUNDLE_V1ALPHA1_DEPRECATED
+                      - CONFIG_BUNDLE_V1ALPHA1_GOVERNANCE_ALIASES_NORMALIZED
+                  message:
+                    type: string
+                required:
+                  - code
+                  - message
+                additionalProperties: false
+          required:
+            - inputApiVersion
+            - normalizedApiVersion
+            - warnings
+          additionalProperties: false
+      required:
+        - bundle
+        - files
+    ConfigEngineRegistration:
+      type: object
+      properties:
+        key:
+          type: string
+          minLength: 3
+          maxLength: 160
+          pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        type:
+          type: string
+          enum:
+            - ion
+            - operaton
+            - camunda7
+        baseUrl:
+          type: string
+          format: uri
+        externalId:
+          type: string
+          minLength: 1
+          maxLength: 255
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+            minLength: 1
+            maxLength: 512
+          default: {}
+        auth:
+          oneOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - basic
+                username:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                passwordRef:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                  pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+              required:
+                - type
+                - username
+                - passwordRef
+              additionalProperties: false
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - bearer
+                tokenRef:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                  pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+              required:
+                - type
+                - tokenRef
+              additionalProperties: false
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - oauth2-client-credentials
+                username:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                passwordRef:
+                  type: string
+                  minLength: 1
+                  maxLength: 512
+                  pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+                tokenUrl:
+                  type: string
+                  format: uri
+                scopes:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+                audience:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+              required:
+                - type
+                - username
+                - passwordRef
+                - tokenUrl
+              additionalProperties: false
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - none
+              required:
+                - type
+              additionalProperties: false
+        connectionMode:
+          type: string
+          enum:
+            - direct
+            - customer_sidecar
+          default: direct
+        runtimeAccessScope:
+          type: string
+          enum:
+            - engine_wide
+            - resource_aware
+          default: engine_wide
+        tenancy:
+          oneOf:
+            - type: object
+              properties:
+                mode:
+                  type: string
+                  enum:
+                    - dedicated
+                tenantRef:
+                  $ref: "#/components/schemas/EngineTenantReference"
+              required:
+                - mode
+              additionalProperties: false
+            - type: object
+              properties:
+                mode:
+                  type: string
+                  enum:
+                    - shared
+                mappingStrategy:
+                  $ref: "#/components/schemas/EngineTenantMappingStrategy"
+                unmappedPolicy:
+                  type: string
+                  enum:
+                    - deny
+                  default: deny
+              required:
+                - mode
+                - mappingStrategy
+              additionalProperties: false
+          default:
+            mode: dedicated
+            tenantRef:
+              type: request_context
+        deploymentIntegration:
+          type: string
+          enum:
+            - enterpriseglue_proxy
+            - direct_engine
+          default: enterpriseglue_proxy
+        metadataDiscoveryEnabled:
+          type: boolean
+          default: true
+        deploymentDiscoveryEnabled:
+          type: boolean
+          default: true
+        reconciliationIntervalSeconds:
+          type: integer
+          minimum: 60
+          maximum: 86400
+          default: 300
+        pipelineReceiptEnabled:
+          type: boolean
+          default: true
+        version:
+          type: string
+          nullable: true
+          maxLength: 255
+        environmentTagId:
+          type: string
+          nullable: true
+          format: uuid
+        ownershipMode:
+          type: string
+          enum:
+            - config_locked
+            - config_warn
+            - manual
+      required:
+        - key
+        - name
+        - type
+        - baseUrl
+        - auth
+      additionalProperties: false
+    EngineTenantMappingStrategy:
+      type: string
+      enum:
+        - engine_tenant_id
+        - deployment_target
+        - explicit
+    EngineTenantReference:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - request_context
+          required:
+            - type
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - default
+          required:
+            - type
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - key
+            key:
+              type: string
+              minLength: 1
+              maxLength: 160
+              pattern: ^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$
+          required:
+            - type
+            - key
+          additionalProperties: false
+        - type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - id
+            id:
+              type: string
+              minLength: 1
+              maxLength: 255
+          required:
+            - type
+            - id
+          additionalProperties: false
+    LdapIdentityProviderConfiguration:
+      type: object
+      properties:
+        allowVerifiedEmailLinking:
+          type: boolean
+          description: Single-tenant compatibility option. In pooled mode, verified email alone never links an existing shared account; independent account-control verification is required.
+        authorizationAttributeKeys:
+          type: array
+          items:
+            type: string
+            pattern: ^[A-Za-z][A-Za-z0-9_.-]{0,127}$
+          maxItems: 20
+        url:
+          type: string
+          format: uri
+        bindDn:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        bindPasswordRef:
+          type: string
+          minLength: 1
+          maxLength: 512
+          pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+        userBaseDn:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        userSearchFilter:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        userEnumerationFilter:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          default: (objectClass=person)
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 200
+        subjectAttribute:
+          type: string
+          minLength: 1
+          maxLength: 255
+          default: entryUUID
+        emailAttribute:
+          type: string
+          minLength: 1
+          maxLength: 255
+          default: mail
+        groupBaseDn:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        groupIdAttribute:
+          type: string
+          minLength: 1
+          maxLength: 255
+        membershipMode:
+          type: string
+          enum:
+            - memberOf
+            - group_search
+        nestedGroups:
+          type: boolean
+          default: false
+        tlsTrustRef:
+          type: string
+          minLength: 1
+          maxLength: 512
+          pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+      required:
+        - url
+        - bindDn
+        - bindPasswordRef
+        - userBaseDn
+        - userSearchFilter
+        - groupBaseDn
+        - groupIdAttribute
+        - membershipMode
+      additionalProperties: false
+    OidcIdentityProviderConfiguration:
+      type: object
+      properties:
+        allowVerifiedEmailLinking:
+          type: boolean
+          description: Single-tenant compatibility option. In pooled mode, verified email alone never links an existing shared account; independent account-control verification is required.
+        authorizationAttributeKeys:
+          type: array
+          items:
+            type: string
+            pattern: ^[A-Za-z][A-Za-z0-9_.-]{0,127}$
+          maxItems: 20
+        issuerUrl:
+          type: string
+          format: uri
+        clientId:
+          type: string
+          minLength: 1
+          maxLength: 255
+        clientAuthentication:
+          type: string
+          enum:
+            - client_secret_post
+            - apple_private_key_jwt
+        clientSecretRef:
+          type: string
+          minLength: 1
+          maxLength: 512
+          pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+        appleTeamId:
+          type: string
+          pattern: ^[A-Z0-9]{10}$
+        appleKeyId:
+          type: string
+          pattern: ^[A-Z0-9]{10}$
+        applePrivateKeyRef:
+          type: string
+          minLength: 1
+          maxLength: 512
+          pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+        callbackUrl:
+          type: string
+          format: uri
+        scopes:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 255
+          minItems: 1
+        groupClaim:
+          type: string
+          minLength: 1
+          maxLength: 255
+        expectedAudience:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        requestedAcrValues:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 512
+          maxItems: 20
+        mfaAmrValues:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 128
+          maxItems: 20
+        mfaAcrValues:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 512
+          maxItems: 20
+        postLogoutRedirectUrl:
+          type: string
+          format: uri
+      required:
+        - issuerUrl
+        - clientId
+        - callbackUrl
+        - scopes
+      additionalProperties: false
+    SamlIdentityProviderConfiguration:
+      type: object
+      properties:
+        allowVerifiedEmailLinking:
+          type: boolean
+          description: Single-tenant compatibility option. In pooled mode, verified email alone never links an existing shared account; independent account-control verification is required.
+        authorizationAttributeKeys:
+          type: array
+          items:
+            type: string
+            pattern: ^[A-Za-z][A-Za-z0-9_.-]{0,127}$
+          maxItems: 20
+        metadataUrl:
+          type: string
+          format: uri
+        metadataXmlRef:
+          type: string
+          minLength: 1
+          maxLength: 512
+          pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+        entityId:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        idpEntityId:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        callbackUrl:
+          type: string
+          format: uri
+        ssoUrl:
+          type: string
+          format: uri
+        nameIdAttribute:
+          type: string
+          minLength: 1
+          maxLength: 255
+        emailAttribute:
+          type: string
+          minLength: 1
+          maxLength: 255
+        groupAttribute:
+          type: string
+          minLength: 1
+          maxLength: 255
+        signingCertificateRef:
+          type: string
+          minLength: 1
+          maxLength: 512
+          pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+        signatureAlgorithm:
+          type: string
+          enum:
+            - sha256
+            - sha512
+          default: sha256
+        sloUrl:
+          type: string
+          format: uri
+        logoutCallbackUrl:
+          type: string
+          format: uri
+        requestSigningPrivateKeyRef:
+          type: string
+          minLength: 1
+          maxLength: 512
+          pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+        requestSigningCertificateRef:
+          type: string
+          minLength: 1
+          maxLength: 512
+          pattern: ^[A-Za-z][A-Za-z0-9_.:/-]*$
+        requestedAuthnContext:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 20
+        mfaAuthnContextValues:
+          type: array
+          items:
+            type: string
+            format: uri
+          maxItems: 20
+      required:
+        - entityId
+        - idpEntityId
+        - callbackUrl
+        - ssoUrl
+        - nameIdAttribute
+        - signingCertificateRef
+      additionalProperties: false
+  parameters: {}
