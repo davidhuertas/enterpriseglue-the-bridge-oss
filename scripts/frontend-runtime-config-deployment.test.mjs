@@ -79,6 +79,7 @@ test('every supported container deployment passes runtime frontend configuration
     'infra/docker/compose/docker-compose.yml',
     'infra/docker/compose/docker-compose.prod.yml',
     'infra/docker/compose/docker-compose.selfhost.yml',
+    'infra/docker/compose/docker-compose.selfhost-oracle.yml',
   ]) {
     const compose = read(path);
     assert.match(compose, new RegExp(`${runtimeUrlKey}: \\$\\{${runtimeUrlKey}:-\\}`));
@@ -118,6 +119,7 @@ test('operator examples and the configuration matrix expose both runtime control
     'images.postgres.env.example',
     'production.env.example',
     'selfhost.env.example',
+    'selfhost-oracle.env.example',
   ];
   for (const file of examples) {
     const source = read(`infra/docker/env/examples/${file}`);

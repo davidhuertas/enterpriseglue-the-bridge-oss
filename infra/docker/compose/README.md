@@ -18,6 +18,8 @@ The optional authorization config-bundle override is `docker-compose.config-bund
 - `docker-compose.identity-protocol-rehearsal.yml` - test-only production-image override for the disposable OIDC, Entra-compatible OIDC, SAML, and LDAP rehearsal
 - `docker-compose.ci.yml` - CI-specific overrides
 - `docker-compose.prod.yml` - production base stack
+- `docker-compose.selfhost.yml` - standalone published-image stack with Postgres (no clone needed)
+- `docker-compose.selfhost-oracle.yml` - standalone published-image stack with the Oracle backend image and Oracle XE (no clone needed)
 - `docker-compose.images.yml` - published-image deployment overlay
 - `docker-compose.config-bundle.yml` - optional read-only configuration-bundle and separate secret-directory mount
 

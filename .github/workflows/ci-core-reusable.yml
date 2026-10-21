@@ -158,6 +158,10 @@ jobs:
           cp "$ENV_EXAMPLES_DIR/selfhost.env.example" "$tmp_dir/.env"
           assert_project_network eg-compose-selfhost \
             docker compose --project-name eg-compose-selfhost --project-directory "$tmp_dir" -f "$tmp_dir/docker-compose.selfhost.yml" config
+          cp "$COMPOSE_DIR/docker-compose.selfhost-oracle.yml" "$tmp_dir/docker-compose.selfhost-oracle.yml"
+          cp "$ENV_EXAMPLES_DIR/selfhost-oracle.env.example" "$tmp_dir/.env"
+          assert_project_network eg-compose-selfhost-oracle \
+            docker compose --project-name eg-compose-selfhost-oracle --project-directory "$tmp_dir" -f "$tmp_dir/docker-compose.selfhost-oracle.yml" config
 
       - name: Validate Docker docs command spelling
         shell: bash
