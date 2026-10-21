@@ -1,0 +1,66 @@
+{
+  "$schema": "./schema.json",
+  "schemaVersion": 1,
+  "id": "openapi-document-split",
+  "type": "feature",
+  "scope": "api-documentation",
+  "breaking": false,
+  "audiences": [
+    "developers",
+    "operators"
+  ],
+  "summary": "Publishes the backend OpenAPI contract as downloadable JSON, split into eight area documents with component references, operation ids, tags and declared security.",
+  "userImpact": [
+    "Developers can download /api/docs/openapi.json or one area document such as /api/docs/engines.json, and switch between documents in Swagger UI at /api/docs."
+  ],
+  "upgrade": {
+    "required": false,
+    "instructions": []
+  },
+  "configuration": [],
+  "api": {
+    "compatibility": "additive",
+    "changes": [
+      "Adds GET /api/docs/openapi.json and GET /api/docs/{auth,identity-access,config-bundles,platform,starbase,engines,mission-control,scim}.json.",
+      "Published documents reference registered schemas instead of inlining them, omit internal authorization metadata, and document tenant routes once under /api/t/{tenantSlug}."
+    ]
+  },
+  "database": {
+    "migrations": [],
+    "rollbackSupported": true,
+    "notes": []
+  },
+  "security": [
+    "The published documents no longer expose internal authorization action ids, resolvers or risk ratings; the internal contract used by the authorization guards is unchanged."
+  ],
+  "documentation": [
+    "Adds generated OpenAPI YAML documents under docs/reference/openapi with a drift and lint check in CI."
+  ],
+  "knownLimitations": [],
+  "rollback": [
+    "Revert to the previous image; the documentation routes hold no state."
+  ],
+  "validation": [
+    "Schema contract tests, the authorization route inventory, and the new published-document tests pass."
+  ],
+  "packages": [
+    {
+      "name": "@enterpriseglue/backend-host",
+      "previousVersion": "0.21.0",
+      "newVersion": "0.22.0",
+      "impact": "minor"
+    },
+    {
+      "name": "@enterpriseglue/frontend-host",
+      "previousVersion": "0.19.0",
+      "newVersion": "0.19.1",
+      "impact": "patch"
+    },
+    {
+      "name": "@enterpriseglue/shared",
+      "previousVersion": "0.26.0",
+      "newVersion": "0.27.0",
+      "impact": "minor"
+    }
+  ]
+}
