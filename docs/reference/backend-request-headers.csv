@@ -1,0 +1,447 @@
+group,method,path,browser_navigation,auth,x_xsrf_token,tenant,other_headers,backend_route
+/_enterpriseglue,GET,/_enterpriseglue/plugins/:pluginId/:version/*assetPath,,Public,No,Optional `/t/:tenantSlug` prefix,,backend-host/src/plugins/pluginRuntime.ts:1850
+/api/admin,DELETE,/api/admin/branding,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/branding.ts:97
+/api/admin,GET,/api/admin/branding,,Session,No,—,,backend-host/src/modules/platform-admin/routes/branding.ts:51
+/api/admin,PUT,/api/admin/branding,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/branding.ts:65
+/api/admin,GET,/api/admin/email-configs,,Session,No,—,,backend-host/src/modules/admin/routes/email-configs.ts:40
+/api/admin,POST,/api/admin/email-configs,,Session,Yes,—,,backend-host/src/modules/admin/routes/email-configs.ts:92
+/api/admin,DELETE,/api/admin/email-configs/:id,,Session,Yes,—,,backend-host/src/modules/admin/routes/email-configs.ts:214
+/api/admin,PATCH,/api/admin/email-configs/:id,,Session,Yes,—,,backend-host/src/modules/admin/routes/email-configs.ts:157
+/api/admin,POST,/api/admin/email-configs/:id/set-default,,Session,Yes,—,,backend-host/src/modules/admin/routes/email-configs.ts:248
+/api/admin,POST,/api/admin/email-configs/:id/test,,Session,Yes,—,,backend-host/src/modules/admin/routes/email-configs.ts:277
+/api/admin,GET,/api/admin/email-platform-name,,Session,No,—,,backend-host/src/modules/admin/routes/email-templates.ts:38
+/api/admin,PUT,/api/admin/email-platform-name,,Session,Yes,—,,backend-host/src/modules/admin/routes/email-templates.ts:51
+/api/admin,GET,/api/admin/email-templates,,Session,No,—,,backend-host/src/modules/admin/routes/email-templates.ts:81
+/api/admin,PATCH,/api/admin/email-templates/:id,,Session,Yes,—,,backend-host/src/modules/admin/routes/email-templates.ts:129
+/api/admin,POST,/api/admin/email-templates/:id/preview,,Session,Yes,—,,backend-host/src/modules/admin/routes/email-templates.ts:465
+/api/admin,POST,/api/admin/email-templates/:id/reset,,Session,Yes,—,,backend-host/src/modules/admin/routes/email-templates.ts:184
+/api/admin,GET,/api/admin/engines,,Session,No,—,,backend-host/src/modules/platform-admin/routes/governance.ts:137
+/api/admin,POST,/api/admin/engines/:engineId/assign-delegate,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/governance.ts:286
+/api/admin,POST,/api/admin/engines/:engineId/assign-owner,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/governance.ts:250
+/api/admin,GET,/api/admin/environments,,Session,No,—,,backend-host/src/modules/platform-admin/routes/environments.ts:31
+/api/admin,POST,/api/admin/environments,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/environments.ts:45
+/api/admin,DELETE,/api/admin/environments/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/environments.ts:109
+/api/admin,PUT,/api/admin/environments/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/environments.ts:76
+/api/admin,POST,/api/admin/environments/reorder,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/environments.ts:144
+/api/admin,GET,/api/admin/projects,,Session,No,—,,backend-host/src/modules/platform-admin/routes/governance.ts:100
+/api/admin,POST,/api/admin/projects/:projectId/assign-delegate,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/governance.ts:214
+/api/admin,POST,/api/admin/projects/:projectId/assign-owner,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/governance.ts:178
+/api/admin,GET,/api/admin/settings,,Session,No,—,,backend-host/src/modules/platform-admin/routes/settings.ts:33
+/api/admin,PUT,/api/admin/settings,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/settings.ts:47
+/api/admin,GET,/api/admin/setup-status,,Session,No,—,,backend-host/src/modules/admin/routes/setup-status.ts:23
+/api/admin,GET,/api/admin/users/search,,Session,No,—,,backend-host/src/modules/platform-admin/routes/governance.ts:66
+/api/audit,GET,/api/audit/actions,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/audit/routes/audit.ts:198
+/api/audit,GET,/api/audit/logs,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/audit/routes/audit.ts:61
+/api/audit,GET,/api/audit/stats,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/audit/routes/audit.ts:148
+/api/auth,GET,/api/auth/branding,,Public,No,—,,backend-host/src/modules/auth/routes/me.ts:140
+/api/auth,POST,/api/auth/change-password,,Session,Yes,—,,backend-host/src/modules/auth/routes/password.ts:147
+/api/auth,POST,/api/auth/cloud-passkey/complete,,Public,Conditional,—,,backend-host/src/modules/auth/routes/cloud-email-passkey.ts:250
+/api/auth,POST,/api/auth/cloud-passkey/options,,Public,Conditional,—,,backend-host/src/modules/auth/routes/cloud-email-passkey.ts:233
+/api/auth,POST,/api/auth/cloud-signup/email/passkey/complete,,Public,Conditional,—,,backend-host/src/modules/auth/routes/cloud-email-passkey.ts:170
+/api/auth,POST,/api/auth/cloud-signup/email/passkey/options,,Public,Conditional,—,,backend-host/src/modules/auth/routes/cloud-email-passkey.ts:150
+/api/auth,POST,/api/auth/cloud-signup/email/request,,Public,Conditional,—,,backend-host/src/modules/auth/routes/cloud-email-passkey.ts:100
+/api/auth,GET,/api/auth/cloud-signup/providers,,Public,No,—,,backend-host/src/modules/auth/routes/identity-oidc.ts:408
+/api/auth,GET,/api/auth/cloud-signup/providers/:providerId/start,yes,Public,No,—,,backend-host/src/modules/auth/routes/identity-oidc.ts:421
+/api/auth,POST,/api/auth/complete-onboarding,,Onboarding cookie,Conditional,—,,backend-host/src/modules/auth/routes/onboarding.ts:100
+/api/auth,GET,/api/auth/documentation/configuration,,Public,No,—,,backend-host/src/modules/auth/routes/documentation.ts:16
+/api/auth,POST,/api/auth/documentation/grant,,Session,Yes,—,`Origin` = frontend URL,backend-host/src/modules/auth/routes/documentation.ts:19
+/api/auth,POST,/api/auth/forgot-password,,Public,Conditional,—,,backend-host/src/modules/auth/routes/forgot-password.ts:37
+/api/auth,POST,/api/auth/login,,Public,No (exempt),Pooled: host or signed placement,,backend-host/src/modules/auth/routes/login.ts:343
+/api/auth,GET,/api/auth/login-methods,,Public,No,Pooled: host or signed placement,,backend-host/src/modules/auth/routes/identity-oidc.ts:558
+/api/auth,POST,/api/auth/logout,,Session,Yes,—,,backend-host/src/modules/auth/routes/logout.ts:57
+/api/auth,GET,/api/auth/me,,Session,No,—,,backend-host/src/modules/auth/routes/me.ts:35
+/api/auth,PATCH,/api/auth/me,,Session,Yes,—,,backend-host/src/modules/auth/routes/me.ts:82
+/api/auth,GET,/api/auth/me/identity-providers,,Session,No,—,,backend-host/src/modules/auth/routes/identity-oidc.ts:451
+/api/auth,GET,/api/auth/me/identity-providers/:providerId/link,yes,Session,No,—,,backend-host/src/modules/auth/routes/identity-oidc.ts:482
+/api/auth,GET,/api/auth/my-tenants,,Session,No,—,,backend-host/src/modules/tenancy/routes/tenants.ts:438
+/api/auth,GET,/api/auth/onboarding/login-methods,,Onboarding cookie,No,—,,backend-host/src/modules/auth/routes/identity-oidc.ts:544
+/api/auth,POST,/api/auth/onboarding/providers/:providerId/login,,Onboarding cookie,Conditional,—,,backend-host/src/modules/auth/routes/identity-oidc.ts:546
+/api/auth,GET,/api/auth/onboarding/providers/:providerId/start,yes,Onboarding cookie,No,—,,backend-host/src/modules/auth/routes/identity-oidc.ts:545
+/api/auth,GET,/api/auth/platform-settings,,Session,No,—,,backend-host/src/modules/auth/routes/me.ts:188
+/api/auth,POST,/api/auth/providers/:providerId/login,,Public,Conditional,Pooled: host or signed placement,,backend-host/src/modules/auth/routes/identity-oidc.ts:560
+/api/auth,GET,/api/auth/providers/:providerId/start,yes,Public,No,Pooled: host or signed placement,,backend-host/src/modules/auth/routes/identity-oidc.ts:559
+/api/auth,POST,/api/auth/recovery/login,,Public,Conditional,—,,backend-host/src/modules/auth/routes/login.ts:351
+/api/auth,POST,/api/auth/refresh,,Refresh cookie,No (exempt),—,,backend-host/src/modules/auth/routes/refresh.ts:41
+/api/auth,POST,/api/auth/resend-verification,,Public,Conditional,—,,backend-host/src/modules/auth/routes/verify-email.ts:81
+/api/auth,POST,/api/auth/reset-password,,Session,Yes,—,,backend-host/src/modules/auth/routes/password.ts:38
+/api/auth,POST,/api/auth/reset-password-with-token,,Public,Conditional,—,,backend-host/src/modules/auth/routes/forgot-password.ts:92
+/api/auth,POST,/api/auth/switch-tenant,,Session,Yes,—,,backend-host/src/modules/tenancy/routes/tenants.ts:443
+/api/auth,POST,/api/auth/tenant-discovery,,Public,Conditional,—,,backend-host/src/modules/tenancy/routes/tenants.ts:428
+/api/auth,POST,/api/auth/tenant-discovery/exchange,,Public,Conditional,—,,backend-host/src/modules/tenancy/routes/tenants.ts:432
+/api/auth,GET,/api/auth/verify-email,,Public,No,—,,backend-host/src/modules/auth/routes/verify-email.ts:20
+/api/auth,GET,/api/auth/verify-reset-token,,Public,No,—,,backend-host/src/modules/auth/routes/forgot-password.ts:158
+/api/authz,GET,/api/authz/api-clients,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/machines.ts:25
+/api/authz,POST,/api/authz/api-clients,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/machines.ts:35
+/api/authz,DELETE,/api/authz/api-clients/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/machines.ts:56
+/api/authz,POST,/api/authz/api-clients/:id/rotate,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/machines.ts:46
+/api/authz,GET,/api/authz/audit,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/audit.ts:38
+/api/authz,POST,/api/authz/check,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz.ts:120
+/api/authz,POST,/api/authz/config-bundles/apply,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:154
+/api/authz,POST,/api/authz/config-bundles/diff,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:143
+/api/authz,GET,/api/authz/config-bundles/export,,Session or API client,No,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:326
+/api/authz,GET,/api/authz/config-bundles/governance-ownership,,Session or API client,No,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:195
+/api/authz,POST,/api/authz/config-bundles/governance-ownership/apply,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:220
+/api/authz,POST,/api/authz/config-bundles/governance-ownership/preview,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:199
+/api/authz,GET,/api/authz/config-bundles/governance-ownership/receipts,,Session or API client,No,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:247
+/api/authz,POST,/api/authz/config-bundles/import-url,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:100
+/api/authz,POST,/api/authz/config-bundles/import-zip,,Session or API client,Yes,—,`Content-Type: application/zip` or `application/octet-stream`,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:87
+/api/authz,POST,/api/authz/config-bundles/preview,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:113
+/api/authz,GET,/api/authz/config-bundles/runs,,Session or API client,No,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:257
+/api/authz,GET,/api/authz/config-bundles/runs/:id,,Session or API client,No,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:267
+/api/authz,GET,/api/authz/config-bundles/runs/:id/identity-replay-tasks,,Session or API client,No,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:277
+/api/authz,GET,/api/authz/config-bundles/runs/:id/runtime-reconciliation-tasks,,Session or API client,No,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:303
+/api/authz,POST,/api/authz/config-bundles/validate-secret-refs,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/config-bundles.ts:119
+/api/authz,GET,/api/authz/engine-sets,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/engine-sets.ts:36
+/api/authz,POST,/api/authz/engine-sets,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/engine-sets.ts:56
+/api/authz,DELETE,/api/authz/engine-sets/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/engine-sets.ts:90
+/api/authz,GET,/api/authz/engine-sets/:id,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/engine-sets.ts:67
+/api/authz,PUT,/api/authz/engine-sets/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/engine-sets.ts:79
+/api/authz,POST,/api/authz/engine-sets/:id/materialize,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/engine-sets.ts:101
+/api/authz,POST,/api/authz/engine-sets/preview,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/engine-sets.ts:46
+/api/authz,POST,/api/authz/evaluate,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz.ts:305
+/api/authz,GET,/api/authz/external-engine-systems,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/external-engine-systems.ts:75
+/api/authz,POST,/api/authz/external-engine-systems,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/external-engine-systems.ts:96
+/api/authz,DELETE,/api/authz/external-engine-systems/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/external-engine-systems.ts:161
+/api/authz,PUT,/api/authz/external-engine-systems/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/external-engine-systems.ts:124
+/api/authz,GET,/api/authz/external-engines,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/external-engines.ts:38
+/api/authz,GET,/api/authz/external-engines/:id/audit,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/external-engines.ts:115
+/api/authz,POST,/api/authz/external-engines/:id/decommission,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/external-engines.ts:133
+/api/authz,POST,/api/authz/external-engines/:id/reactivate,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/external-engines.ts:165
+/api/authz,POST,/api/authz/external-engines/:id/reconcile,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/external-engines.ts:206
+/api/authz,GET,/api/authz/group-memberships,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/assignments.ts:312
+/api/authz,POST,/api/authz/group-memberships,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/assignments.ts:327
+/api/authz,DELETE,/api/authz/group-memberships/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/assignments.ts:343
+/api/authz,GET,/api/authz/groups,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/assignments.ts:252
+/api/authz,POST,/api/authz/groups,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/assignments.ts:266
+/api/authz,DELETE,/api/authz/groups/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/assignments.ts:297
+/api/authz,PUT,/api/authz/groups/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/assignments.ts:282
+/api/authz,GET,/api/authz/me/permissions,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz.ts:198
+/api/authz,GET,/api/authz/permissions,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/roles.ts:110
+/api/authz,POST,/api/authz/permissions,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/roles.ts:114
+/api/authz,GET,/api/authz/policies,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/policies.ts:18
+/api/authz,POST,/api/authz/policies,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/policies.ts:28
+/api/authz,DELETE,/api/authz/policies/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/policies.ts:65
+/api/authz,PUT,/api/authz/policies/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/policies.ts:49
+/api/authz,GET,/api/authz/project-engine-targets,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/project-engine-targets.ts:42
+/api/authz,POST,/api/authz/project-engine-targets,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/project-engine-targets.ts:63
+/api/authz,DELETE,/api/authz/project-engine-targets/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/project-engine-targets.ts:75
+/api/authz,GET,/api/authz/project-engine-targets/:id,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/project-engine-targets.ts:67
+/api/authz,PUT,/api/authz/project-engine-targets/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/project-engine-targets.ts:71
+/api/authz,POST,/api/authz/project-engine-targets/evaluate,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/project-engine-targets.ts:47
+/api/authz,POST,/api/authz/project-engine-targets/sync-legacy,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/project-engine-targets.ts:59
+/api/authz,GET,/api/authz/role-assignments,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/assignments.ts:189
+/api/authz,POST,/api/authz/role-assignments,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/assignments.ts:214
+/api/authz,DELETE,/api/authz/role-assignments/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/assignments.ts:240
+/api/authz,GET,/api/authz/roles,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/roles.ts:129
+/api/authz,POST,/api/authz/roles,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/roles.ts:168
+/api/authz,DELETE,/api/authz/roles/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/roles.ts:198
+/api/authz,GET,/api/authz/roles/:id,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/roles.ts:156
+/api/authz,PUT,/api/authz/roles/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/roles.ts:183
+/api/authz,GET,/api/authz/runtime-resource-sets,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/engine-sets.ts:120
+/api/authz,POST,/api/authz/runtime-resource-sets/:id/materialize,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/engine-sets.ts:129
+/api/authz,GET,/api/authz/runtime-resources,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/engine-sets.ts:111
+/api/authz,POST,/api/authz/runtime-resources/:id/reconcile,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/engine-sets.ts:133
+/api/authz,GET,/api/authz/service-accounts,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/machines.ts:67
+/api/authz,POST,/api/authz/service-accounts,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/machines.ts:77
+/api/authz,DELETE,/api/authz/service-accounts/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/machines.ts:103
+/api/authz,POST,/api/authz/service-accounts/:id/rotate,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/machines.ts:93
+/api/authz,GET,/api/authz/sso-sync-runs,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/sso-sync-diagnostics.ts:21
+/api/authz,GET,/api/authz/sso-sync-runs/:id/events,,Session,No,—,,backend-host/src/modules/platform-admin/routes/authz/sso-sync-diagnostics.ts:60
+/api/authz,POST,/api/authz/sso-sync-runs/reconcile,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/sso-sync-diagnostics.ts:39
+/api/dashboard,GET,/api/dashboard/context,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/dashboard/routes/context.ts:53
+/api/dashboard,GET,/api/dashboard/stats,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/dashboard/routes/stats.ts:19
+/api/identity,GET,/api/identity/mappings,,Session,No,—,,backend-host/src/modules/platform-admin/routes/identity-mappings.ts:67
+/api/identity,POST,/api/identity/mappings,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-mappings.ts:70
+/api/identity,DELETE,/api/identity/mappings/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-mappings.ts:168
+/api/identity,PUT,/api/identity/mappings/:id,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-mappings.ts:162
+/api/identity,POST,/api/identity/mappings/:id/access,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-mappings.ts:118
+/api/identity,POST,/api/identity/mappings/provision-access,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-mappings.ts:75
+/api/identity,POST,/api/identity/mappings/stored-snapshot-preview,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-mappings.ts:178
+/api/identity,POST,/api/identity/mappings/test,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-mappings.ts:174
+/api/identity,POST,/api/identity/provider-secrets,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:80
+/api/identity,POST,/api/identity/provider-secrets/retire,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:100
+/api/identity,GET,/api/identity/providers,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:76
+/api/identity,POST,/api/identity/providers,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:244
+/api/identity,DELETE,/api/identity/providers/:key,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:315
+/api/identity,PUT,/api/identity/providers/:key,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:252
+/api/identity,POST,/api/identity/providers/:key/external-identities/unlink,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:188
+/api/identity,POST,/api/identity/providers/:key/reconcile,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:280
+/api/identity,POST,/api/identity/providers/:key/reconciliation-preview,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:289
+/api/identity,POST,/api/identity/providers/:key/replay-memberships,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:298
+/api/identity,PUT,/api/identity/providers/:key/secrets/:purpose,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:120
+/api/identity,GET,/api/identity/providers/:key/sync-runs,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:211
+/api/identity,POST,/api/identity/providers/:key/test-connection,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/platform-admin/routes/identity-providers.ts:227
+/api/identity,GET,/api/identity/provisioning-directories,,Session or API client,No,—,,backend-host/src/modules/platform-admin/routes/identity-provisioning.ts:78
+/api/identity,POST,/api/identity/provisioning-directories,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-provisioning.ts:94
+/api/identity,DELETE,/api/identity/provisioning-directories/:key,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-provisioning.ts:147
+/api/identity,PUT,/api/identity/provisioning-directories/:key,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-provisioning.ts:133
+/api/identity,GET,/api/identity/provisioning-directories/:key/credentials,,Session or API client,No,—,,backend-host/src/modules/platform-admin/routes/identity-provisioning.ts:181
+/api/identity,POST,/api/identity/provisioning-directories/:key/credentials,,Session or API client,Yes,—,`Idempotency-Key` (API-client callers),backend-host/src/modules/platform-admin/routes/identity-provisioning.ts:186
+/api/identity,DELETE,/api/identity/provisioning-directories/:key/credentials/:credentialId,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-provisioning.ts:229
+/api/identity,POST,/api/identity/provisioning-directories/:key/credentials/:credentialId/rotate,,Session or API client,Yes,—,`Idempotency-Key` (API-client callers),backend-host/src/modules/platform-admin/routes/identity-provisioning.ts:207
+/api/identity,GET,/api/identity/provisioning-directories/:key/events,,Session or API client,No,—,,backend-host/src/modules/platform-admin/routes/identity-provisioning.ts:243
+/api/identity,POST,/api/identity/provisioning-directories/:key/test,,Session or API client,Yes,—,,backend-host/src/modules/platform-admin/routes/identity-provisioning.ts:161
+/api/invitations,GET,/api/invitations/:token,,Public,No,—,,backend-host/src/modules/invitations/routes/invitations.ts:171
+/api/invitations,POST,/api/invitations/:token/redeem,,Public,Conditional,—,,backend-host/src/modules/invitations/routes/invitations.ts:252
+/api/invitations,POST,/api/invitations/:token/verify-otp,,Public,Conditional,—,,backend-host/src/modules/invitations/routes/invitations.ts:212
+/api/mission-control,POST,/api/mission-control/bridge/starbase-edit/evaluate,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/project-engine-targets.ts:51
+/api/notifications,DELETE,/api/notifications,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/notifications/routes/notifications.ts:176
+/api/notifications,GET,/api/notifications,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/notifications/routes/notifications.ts:51
+/api/notifications,POST,/api/notifications,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/notifications/routes/notifications.ts:118
+/api/notifications,DELETE,/api/notifications/:id,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/notifications/routes/notifications.ts:196
+/api/notifications,PATCH,/api/notifications/read,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/notifications/routes/notifications.ts:149
+/api/platform,GET,/api/platform/tenants,,Session,No,—,,backend-host/src/modules/tenancy/routes/tenants.ts:463
+/api/platform,POST,/api/platform/tenants,,Session,Yes,—,,backend-host/src/modules/tenancy/routes/tenants.ts:467
+/api/plugin-platform,GET,/api/plugin-platform/v1/audit,,Session,No,—,,backend-host/src/plugins/pluginControlRoutes.ts:168
+/api/plugin-platform,GET,/api/plugin-platform/v1/capabilities,,Session,No,—,,backend-host/src/plugins/pluginControlRoutes.ts:116
+/api/plugin-platform,GET,/api/plugin-platform/v1/catalog,,Session,No,—,,backend-host/src/plugins/pluginManagerBrowserRoutes.ts:89
+/api/plugin-platform,GET,/api/plugin-platform/v1/deployment-execution,,Session,No,—,,backend-host/src/plugins/pluginControlRoutes.ts:141
+/api/plugin-platform,GET,/api/plugin-platform/v1/emergency-control,,Session,No,—,,backend-host/src/plugins/pluginControlRoutes.ts:133
+/api/plugin-platform,PUT,/api/plugin-platform/v1/emergency-control,,Session,Yes,—,,backend-host/src/plugins/pluginControlRoutes.ts:149
+/api/plugin-platform,GET,/api/plugin-platform/v1/events/dead-letters,,Session,No,—,,backend-host/src/plugins/pluginControlRoutes.ts:196
+/api/plugin-platform,GET,/api/plugin-platform/v1/installations,,Session,No,—,,backend-host/src/plugins/pluginManagerBrowserRoutes.ts:119
+/api/plugin-platform,POST,/api/plugin-platform/v1/installations,,Session,Yes,—,,backend-host/src/plugins/pluginManagerBrowserRoutes.ts:146
+/api/plugin-platform,GET,/api/plugin-platform/v1/installations/:installationId,,Session,No,—,,backend-host/src/plugins/pluginManagerBrowserRoutes.ts:133
+/api/plugin-platform,POST,/api/plugin-platform/v1/installations/:installationId/approval,,Session,Yes,—,,backend-host/src/plugins/pluginManagerBrowserRoutes.ts:171
+/api/plugin-platform,GET,/api/plugin-platform/v1/manager,,Session,No,—,,backend-host/src/plugins/pluginManagerBrowserRoutes.ts:101
+/api/plugin-platform,GET,/api/plugin-platform/v1/plugins,,Session,No,—,,backend-host/src/plugins/pluginControlRoutes.ts:125
+/api/plugin-platform,POST,/api/plugin-platform/v1/plugins/:pluginId/disable,,Session,Yes,—,,backend-host/src/plugins/pluginControlRoutes.ts:285
+/api/plugin-platform,POST,/api/plugin-platform/v1/plugins/:pluginId/enable,,Session,Yes,—,,backend-host/src/plugins/pluginControlRoutes.ts:236
+/api/plugin-platform,POST,/api/plugin-platform/v1/plugins/:pluginId/events/dead-letters/:deliveryId/requeue,,Session,Yes,—,,backend-host/src/plugins/pluginControlRoutes.ts:254
+/api/plugins,DELETE,/api/plugins/v1/:pluginId/operations/:operationId,,Session,Yes,From session,,backend-host/src/plugins/pluginRuntime.ts:1913
+/api/plugins,GET,/api/plugins/v1/:pluginId/operations/:operationId,,Session,No,From session,,backend-host/src/plugins/pluginRuntime.ts:1913
+/api/plugins,PATCH,/api/plugins/v1/:pluginId/operations/:operationId,,Session,Yes,From session,,backend-host/src/plugins/pluginRuntime.ts:1913
+/api/plugins,POST,/api/plugins/v1/:pluginId/operations/:operationId,,Session,Yes,From session,,backend-host/src/plugins/pluginRuntime.ts:1913
+/api/plugins,PUT,/api/plugins/v1/:pluginId/operations/:operationId,,Session,Yes,From session,,backend-host/src/plugins/pluginRuntime.ts:1913
+/api/starbase,POST,/api/starbase/bridge/mission-control/evaluate,,Session,Yes,—,,backend-host/src/modules/platform-admin/routes/authz/project-engine-targets.ts:55
+/api/t/:tenantSlug/apps,GET,/api/t/:tenantSlug/apps,,Session,No,In path,,backend-host/src/plugins/pluginControlRoutes.ts:362
+/api/t/:tenantSlug/apps,POST,/api/t/:tenantSlug/apps/:pluginId/activate,,Session,Yes,In path,,backend-host/src/plugins/pluginControlRoutes.ts:501
+/api/t/:tenantSlug/apps,POST,/api/t/:tenantSlug/apps/:pluginId/activation-request,,Session,Yes,In path,,backend-host/src/plugins/pluginControlRoutes.ts:445
+/api/t/:tenantSlug/apps,POST,/api/t/:tenantSlug/apps/:pluginId/activation-request/decision,,Session,Yes,In path,,backend-host/src/plugins/pluginControlRoutes.ts:464
+/api/t/:tenantSlug/apps,GET,/api/t/:tenantSlug/apps/:pluginId/audit,,Session,No,In path,,backend-host/src/plugins/pluginControlRoutes.ts:402
+/api/t/:tenantSlug/apps,POST,/api/t/:tenantSlug/apps/:pluginId/deactivate,,Session,Yes,In path,,backend-host/src/plugins/pluginControlRoutes.ts:506
+/api/t/:tenantSlug/auth,POST,/api/t/:tenantSlug/auth/complete-onboarding,,Onboarding cookie,Conditional,In path,,backend-host/src/modules/auth/routes/onboarding.ts:101
+/api/t/:tenantSlug/auth,POST,/api/t/:tenantSlug/auth/login,,Public,Conditional,In path,,backend-host/src/modules/auth/routes/login.ts:339
+/api/t/:tenantSlug/auth,GET,/api/t/:tenantSlug/auth/login-methods,,Public,No,In path,,backend-host/src/modules/auth/routes/identity-oidc.ts:554
+/api/t/:tenantSlug/auth,GET,/api/t/:tenantSlug/auth/onboarding/login-methods,,Onboarding cookie,No,In path,,backend-host/src/modules/auth/routes/identity-oidc.ts:547
+/api/t/:tenantSlug/auth,POST,/api/t/:tenantSlug/auth/onboarding/providers/:providerId/login,,Onboarding cookie,Conditional,In path,,backend-host/src/modules/auth/routes/identity-oidc.ts:549
+/api/t/:tenantSlug/auth,GET,/api/t/:tenantSlug/auth/onboarding/providers/:providerId/start,yes,Onboarding cookie,No,In path,,backend-host/src/modules/auth/routes/identity-oidc.ts:548
+/api/t/:tenantSlug/auth,POST,/api/t/:tenantSlug/auth/providers/:providerId/login,,Public,Conditional,In path,,backend-host/src/modules/auth/routes/identity-oidc.ts:556
+/api/t/:tenantSlug/auth,GET,/api/t/:tenantSlug/auth/providers/:providerId/start,yes,Public,No,In path,,backend-host/src/modules/auth/routes/identity-oidc.ts:555
+/api/t/:tenantSlug/invitations,POST,/api/t/:tenantSlug/invitations,,Session,Yes,In path,,backend-host/src/modules/invitations/routes/invitations.ts:100
+/api/t/:tenantSlug/invitations,GET,/api/t/:tenantSlug/invitations/:token,,Public,No,In path,,backend-host/src/modules/invitations/routes/invitations.ts:172
+/api/t/:tenantSlug/invitations,POST,/api/t/:tenantSlug/invitations/:token/redeem,,Public,Conditional,In path,,backend-host/src/modules/invitations/routes/invitations.ts:253
+/api/t/:tenantSlug/invitations,POST,/api/t/:tenantSlug/invitations/:token/verify-otp,,Public,Conditional,In path,,backend-host/src/modules/invitations/routes/invitations.ts:213
+/api/t/:tenantSlug/invitations,GET,/api/t/:tenantSlug/invitations/capabilities,,Session,No,In path,,backend-host/src/modules/invitations/routes/invitations.ts:90
+/api/t/:tenantSlug/tenant,GET,/api/t/:tenantSlug/tenant/discovery-domains,,Session,No,In path,,backend-host/src/modules/tenancy/routes/tenants.ts:554
+/api/t/:tenantSlug/tenant,POST,/api/t/:tenantSlug/tenant/discovery-domains,,Session,Yes,In path,,backend-host/src/modules/tenancy/routes/tenants.ts:558
+/api/t/:tenantSlug/tenant,DELETE,/api/t/:tenantSlug/tenant/discovery-domains/:domainId,,Session,Yes,In path,,backend-host/src/modules/tenancy/routes/tenants.ts:579
+/api/t/:tenantSlug/tenant,POST,/api/t/:tenantSlug/tenant/discovery-domains/:domainId/verify,,Session,Yes,In path,,backend-host/src/modules/tenancy/routes/tenants.ts:571
+/api/t/:tenantSlug/tenant,GET,/api/t/:tenantSlug/tenant/login-policy,,Session,No,In path,,backend-host/src/modules/tenancy/routes/tenants.ts:517
+/api/t/:tenantSlug/tenant,PUT,/api/t/:tenantSlug/tenant/login-policy,,Session,Yes,In path,,backend-host/src/modules/tenancy/routes/tenants.ts:525
+/api/t/:tenantSlug/tenant,GET,/api/t/:tenantSlug/tenant/members,,Session,No,In path,,backend-host/src/modules/tenancy/routes/tenants.ts:584
+/api/t/:tenantSlug/tenant,DELETE,/api/t/:tenantSlug/tenant/members/:userId,,Session,Yes,In path,,backend-host/src/modules/tenancy/routes/tenants.ts:594
+/api/t/:tenantSlug/tenant,PUT,/api/t/:tenantSlug/tenant/members/:userId,,Session,Yes,In path,,backend-host/src/modules/tenancy/routes/tenants.ts:588
+/api/tenancy,GET,/api/tenancy/capabilities,,Public,No,—,,backend-host/src/modules/tenancy/routes/tenants.ts:135
+/api/users,GET,/api/users,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:28
+/api/users,POST,/api/users,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:39
+/api/users,DELETE,/api/users/:id,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:152
+/api/users,GET,/api/users/:id,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:124
+/api/users,PUT,/api/users/:id,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:136
+/api/users,GET,/api/users/:id/audit,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:101
+/api/users,POST,/api/users/:id/deactivate,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:105
+/api/users,GET,/api/users/:id/effective-access,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:93
+/api/users,GET,/api/users/:id/identity-context,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:89
+/api/users,DELETE,/api/users/:id/permanent,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:167
+/api/users,POST,/api/users/:id/reactivate,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:111
+/api/users,POST,/api/users/:id/revoke-sessions,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:115
+/api/users,GET,/api/users/:id/sessions,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:97
+/api/users,POST,/api/users/:id/unlock,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:188
+/api/users,GET,/api/users/directory,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/users/routes/users.ts:82
+/engines-api,GET,/engines-api/engines,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1145
+/engines-api,POST,/engines-api/engines,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1177
+/engines-api,GET,/engines-api/engines/:engineId/access-requests,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:883
+/engines-api,POST,/engines-api/engines/:engineId/access-requests/:requestId/approve,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:909
+/engines-api,POST,/engines-api/engines/:engineId/access-requests/:requestId/deny,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:937
+/engines-api,POST,/engines-api/engines/:engineId/delegate,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:632
+/engines-api,GET,/engines-api/engines/:engineId/deployment-history,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/deployments.ts:825
+/engines-api,GET,/engines-api/engines/:engineId/deployment-receipts,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/deployments.ts:819
+/engines-api,POST,/engines-api/engines/:engineId/deployments,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/deployments.ts:763
+/engines-api,GET,/engines-api/engines/:engineId/deployments/:deploymentId/lineage,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/deployments.ts:853
+/engines-api,POST,/engines-api/engines/:engineId/environment,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:720
+/engines-api,GET,/engines-api/engines/:engineId/members,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:240
+/engines-api,POST,/engines-api/engines/:engineId/members,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:338
+/engines-api,DELETE,/engines-api/engines/:engineId/members/:userId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:507
+/engines-api,PATCH,/engines-api/engines/:engineId/members/:userId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:467
+/engines-api,GET,/engines-api/engines/:engineId/members/capabilities,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:260
+/engines-api,GET,/engines-api/engines/:engineId/members/lookup,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:277
+/engines-api,POST,/engines-api/engines/:engineId/pending-invites/:invitationId/reissue,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:544
+/engines-api,POST,/engines-api/engines/:engineId/request-access,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:849
+/engines-api,DELETE,/engines-api/engines/:id,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2468
+/engines-api,PUT,/engines-api/engines/:id,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2339
+/engines-api,GET,/engines-api/engines/:id/backstop/mappings,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1924
+/engines-api,POST,/engines-api/engines/:id/backstop/mappings,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1931
+/engines-api,GET,/engines-api/engines/:id/backstop/status,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1912
+/engines-api,GET,/engines-api/engines/:id/backstop/sync,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1955
+/engines-api,POST,/engines-api/engines/:id/backstop/sync/:runId/apply,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1977
+/engines-api,POST,/engines-api/engines/:id/backstop/sync/:runId/drift-check,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1997
+/engines-api,POST,/engines-api/engines/:id/backstop/sync/:runId/rollback,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1987
+/engines-api,POST,/engines-api/engines/:id/backstop/sync/preview,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1940
+/engines-api,GET,/engines-api/engines/:id/camunda-native-grants/imports,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1889
+/engines-api,POST,/engines-api/engines/:id/camunda-native-grants/imports/:runId/apply,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2059
+/engines-api,GET,/engines-api/engines/:id/camunda-native-grants/imports/:runId/detail,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1904
+/engines-api,POST,/engines-api/engines/:id/camunda-native-grants/imports/:runId/draft,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2007
+/engines-api,POST,/engines-api/engines/:id/camunda-native-grants/imports/:runId/rollback,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2154
+/engines-api,POST,/engines-api/engines/:id/camunda-native-grants/imports/:runId/rollback/preview,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2126
+/engines-api,POST,/engines-api/engines/:id/camunda-native-grants/imports/preview,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:1841
+/engines-api,GET,/engines-api/engines/:id/health,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2540
+/engines-api,GET,/engines-api/engines/:id/project-targets,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2196
+/engines-api,POST,/engines-api/engines/:id/tenancy/apply,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2252
+/engines-api,GET,/engines-api/engines/:id/tenancy/diagnostics,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2211
+/engines-api,POST,/engines-api/engines/:id/tenancy/preview,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2215
+/engines-api,GET,/engines-api/engines/:id/tenant-mappings,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2297
+/engines-api,PUT,/engines-api/engines/:id/tenant-mappings,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2310
+/engines-api,POST,/engines-api/engines/:id/test,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2523
+/engines-api,GET,/engines-api/environment-tags,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/engines/routes/management.ts:778
+/engines-api,GET,/engines-api/saved-filters,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2593
+/engines-api,POST,/engines-api/saved-filters,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2605
+/engines-api,DELETE,/engines-api/saved-filters/:id,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/engines/routes.ts:2664
+/git-api,GET,/git-api/admin/providers,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/providers.ts:102
+/git-api,PUT,/git-api/admin/providers/:id,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/providers.ts:159
+/git-api,POST,/git-api/clone,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/clone.ts:117
+/git-api,GET,/git-api/commits,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/deployments.ts:238
+/git-api,POST,/git-api/create-online,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/createOnline.ts:54
+/git-api,GET,/git-api/credentials,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/credentials.ts:68
+/git-api,POST,/git-api/credentials,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/credentials.ts:95
+/git-api,PATCH,/git-api/credentials/:credentialId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/credentials.ts:114
+/git-api,GET,/git-api/credentials/:credentialId/namespaces,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/credentials.ts:156
+/git-api,DELETE,/git-api/credentials/:providerId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/credentials.ts:132
+/git-api,GET,/git-api/credentials/:providerId/validate,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/credentials.ts:144
+/git-api,POST,/git-api/deploy,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/deployments.ts:34
+/git-api,GET,/git-api/deployments,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/deployments.ts:162
+/git-api,GET,/git-api/deployments/:id,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/deployments.ts:196
+/git-api,GET,/git-api/locks,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/locks.ts:142
+/git-api,POST,/git-api/locks,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/locks.ts:42
+/git-api,DELETE,/git-api/locks/:lockId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/locks.ts:103
+/git-api,PUT,/git-api/locks/:lockId/heartbeat,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/locks.ts:162
+/git-api,GET,/git-api/oauth/:providerId/authorize/redirect,yes,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/credentials.ts:197
+/git-api,POST,/git-api/oauth/callback,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/credentials.ts:258
+/git-api,DELETE,/git-api/project-connection,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/gitConnection.ts:229
+/git-api,GET,/git-api/project-connection,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/gitConnection.ts:47
+/git-api,POST,/git-api/project-connection,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/gitConnection.ts:89
+/git-api,PUT,/git-api/project-connection/token,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/gitConnection.ts:172
+/git-api,GET,/git-api/providers,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/providers.ts:42
+/git-api,GET,/git-api/providers/:id/repos,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/providers.ts:190
+/git-api,POST,/git-api/repo-info,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/clone.ts:48
+/git-api,GET,/git-api/repositories,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/repositories.ts:61
+/git-api,DELETE,/git-api/repositories/:id,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/repositories.ts:149
+/git-api,GET,/git-api/repositories/:id,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/repositories.ts:111
+/git-api,POST,/git-api/repositories/clone,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/repositories.ts:47
+/git-api,POST,/git-api/repositories/init,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/repositories.ts:34
+/git-api,POST,/git-api/rollback,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/deployments.ts:222
+/git-api,POST,/git-api/sync,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/sync.ts:115
+/git-api,GET,/git-api/sync/status,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/git/routes/sync.ts:56
+/mission-control-api,GET,/mission-control-api/batches,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/batches/routes.ts:175
+/mission-control-api,DELETE,/mission-control-api/batches/:id,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/batches/routes.ts:444
+/mission-control-api,GET,/mission-control-api/batches/:id,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/batches/routes.ts:259
+/mission-control-api,DELETE,/mission-control-api/batches/:id/record,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/batches/routes.ts:463
+/mission-control-api,PUT,/mission-control-api/batches/:id/suspended,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/batches/routes.ts:215
+/mission-control-api,POST,/mission-control-api/batches/jobs/retries,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/batches/routes.ts:153
+/mission-control-api,POST,/mission-control-api/batches/process-instances/activate,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/batches/routes.ts:145
+/mission-control-api,POST,/mission-control-api/batches/process-instances/delete,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/batches/routes.ts:119
+/mission-control-api,POST,/mission-control-api/batches/process-instances/suspend,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/batches/routes.ts:136
+/mission-control-api,GET,/mission-control-api/decision-definitions,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/decisions/routes.ts:81
+/mission-control-api,GET,/mission-control-api/decision-definitions/:id,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/decisions/routes.ts:101
+/mission-control-api,GET,/mission-control-api/decision-definitions/:id/xml,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/decisions/routes.ts:109
+/mission-control-api,GET,/mission-control-api/decision-definitions/edit-target,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/decisions/routes.ts:41
+/mission-control-api,POST,/mission-control-api/decision-definitions/key/:key/evaluate,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/decisions/routes.ts:125
+/mission-control-api,GET,/mission-control-api/history/decisions,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/history-extended.ts:69
+/mission-control-api,GET,/mission-control-api/history/decisions/:id/inputs,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/history-extended.ts:86
+/mission-control-api,GET,/mission-control-api/history/decisions/:id/outputs,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/history-extended.ts:99
+/mission-control-api,GET,/mission-control-api/history/process-instances/:id,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:315
+/mission-control-api,GET,/mission-control-api/history/variable-instances,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:378
+/mission-control-api,POST,/mission-control-api/migration/active-sources,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/migration/routes.ts:102
+/mission-control-api,POST,/mission-control-api/migration/execute-async,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/migration/routes.ts:80
+/mission-control-api,POST,/mission-control-api/migration/execute-direct,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/migration/routes.ts:91
+/mission-control-api,POST,/mission-control-api/migration/generate,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/migration/routes.ts:65
+/mission-control-api,POST,/mission-control-api/migration/plan/validate,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/migration/routes.ts:69
+/mission-control-api,POST,/mission-control-api/migration/preview,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/migration/routes.ts:35
+/mission-control-api,GET,/mission-control-api/process-definitions,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:96
+/mission-control-api,GET,/mission-control-api/process-definitions/:id/active-activity-counts,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:165
+/mission-control-api,GET,/mission-control-api/process-definitions/:id/activity-counts-by-state,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:178
+/mission-control-api,GET,/mission-control-api/process-definitions/:id/xml,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:153
+/mission-control-api,GET,/mission-control-api/process-definitions/edit-target,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/processes/routes.ts:85
+/mission-control-api,POST,/mission-control-api/process-definitions/key/:key/start,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/processes/routes.ts:152
+/mission-control-api,GET,/mission-control-api/process-instances,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:209
+/mission-control-api,DELETE,/mission-control-api/process-instances/:id,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:429
+/mission-control-api,GET,/mission-control-api/process-instances/:id,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:240
+/mission-control-api,PUT,/mission-control-api/process-instances/:id/activate,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:418
+/mission-control-api,GET,/mission-control-api/process-instances/:id/activity-instances,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/process-instances/routes.ts:100
+/mission-control-api,GET,/mission-control-api/process-instances/:id/execution-details,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:285
+/mission-control-api,GET,/mission-control-api/process-instances/:id/failed-external-tasks,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:442
+/mission-control-api,GET,/mission-control-api/process-instances/:id/history/activity-instances,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:273
+/mission-control-api,GET,/mission-control-api/process-instances/:id/incidents,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:365
+/mission-control-api,GET,/mission-control-api/process-instances/:id/jobs,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:302
+/mission-control-api,POST,/mission-control-api/process-instances/:id/modify,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/modify.ts:38
+/mission-control-api,POST,/mission-control-api/process-instances/:id/retry,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:454
+/mission-control-api,PUT,/mission-control-api/process-instances/:id/suspend,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:407
+/mission-control-api,GET,/mission-control-api/process-instances/:id/variable-history,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:352
+/mission-control-api,GET,/mission-control-api/process-instances/:id/variables,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:261
+/mission-control-api,POST,/mission-control-api/process-instances/:id/variables,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/process-instances/routes.ts:121
+/mission-control-api,POST,/mission-control-api/process-instances/preview-count,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/mission-control/shared/mission_control.ts:192
+/starbase-api,DELETE,/starbase-api/deployments/:id,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/deployments.ts:38
+/starbase-api,DELETE,/starbase-api/files/:fileId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/files.ts:665
+/starbase-api,GET,/starbase-api/files/:fileId,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/files.ts:250
+/starbase-api,PATCH,/starbase-api/files/:fileId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/files.ts:580
+/starbase-api,PUT,/starbase-api/files/:fileId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/files.ts:375
+/starbase-api,GET,/starbase-api/files/:fileId/comments,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/comments.ts:20
+/starbase-api,GET,/starbase-api/files/:fileId/download,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/files.ts:353
+/starbase-api,POST,/starbase-api/files/:fileId/restore-from-commit,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/files.ts:458
+/starbase-api,GET,/starbase-api/files/:fileId/versions,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/versions.ts:55
+/starbase-api,POST,/starbase-api/files/:fileId/versions,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/versions.ts:99
+/starbase-api,GET,/starbase-api/files/:fileId/versions/:versionId,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/versions.ts:135
+/starbase-api,POST,/starbase-api/files/:fileId/versions/:versionId/restore,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/versions.ts:160
+/starbase-api,DELETE,/starbase-api/folders/:folderId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/folders.ts:551
+/starbase-api,PATCH,/starbase-api/folders/:folderId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/folders.ts:446
+/starbase-api,GET,/starbase-api/folders/:folderId/delete-preview,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/folders.ts:503
+/starbase-api,GET,/starbase-api/folders/:folderId/download,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/folders.ts:582
+/starbase-api,GET,/starbase-api/projects,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/projects.ts:187
+/starbase-api,POST,/starbase-api/projects,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/projects.ts:372
+/starbase-api,DELETE,/starbase-api/projects/:projectId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/projects.ts:491
+/starbase-api,PATCH,/starbase-api/projects/:projectId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/projects.ts:474
+/starbase-api,GET,/starbase-api/projects/:projectId/contents,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/folders.ts:326
+/starbase-api,GET,/starbase-api/projects/:projectId/deployment-targets,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/projects.ts:506
+/starbase-api,POST,/starbase-api/projects/:projectId/deployment-targets,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/projects.ts:524
+/starbase-api,DELETE,/starbase-api/projects/:projectId/deployment-targets/:targetId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/projects.ts:555
+/starbase-api,PUT,/starbase-api/projects/:projectId/deployment-targets/:targetId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/projects.ts:540
+/starbase-api,POST,/starbase-api/projects/:projectId/deployment-targets/sync-legacy,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/projects.ts:516
+/starbase-api,GET,/starbase-api/projects/:projectId/download,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/folders.ts:644
+/starbase-api,POST,/starbase-api/projects/:projectId/download-selection,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/folders.ts:714
+/starbase-api,GET,/starbase-api/projects/:projectId/engine-access,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/projects.ts:570
+/starbase-api,GET,/starbase-api/projects/:projectId/engine-deployments/latest,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/engine-deployments.ts:51
+/starbase-api,GET,/starbase-api/projects/:projectId/files,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/files.ts:135
+/starbase-api,POST,/starbase-api/projects/:projectId/files,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/files.ts:170
+/starbase-api,GET,/starbase-api/projects/:projectId/files/:fileId/callers,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/files.ts:294
+/starbase-api,GET,/starbase-api/projects/:projectId/files/:fileId/deployments/history,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/engine-deployments.ts:40
+/starbase-api,GET,/starbase-api/projects/:projectId/folders,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/folders.ts:384
+/starbase-api,POST,/starbase-api/projects/:projectId/folders,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/folders.ts:402
+/starbase-api,POST,/starbase-api/projects/:projectId/import-zip,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/folders.ts:690
+/starbase-api,GET,/starbase-api/projects/:projectId/members,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/members.ts:446
+/starbase-api,POST,/starbase-api/projects/:projectId/members,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/members.ts:590
+/starbase-api,DELETE,/starbase-api/projects/:projectId/members/:userId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/members.ts:795
+/starbase-api,PATCH,/starbase-api/projects/:projectId/members/:userId,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/members.ts:734
+/starbase-api,PUT,/starbase-api/projects/:projectId/members/:userId/deploy-permission,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/members.ts:373
+/starbase-api,GET,/starbase-api/projects/:projectId/members/capabilities,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/members.ts:351
+/starbase-api,GET,/starbase-api/projects/:projectId/members/lookup,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/members.ts:295
+/starbase-api,GET,/starbase-api/projects/:projectId/members/me,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/members.ts:893
+/starbase-api,GET,/starbase-api/projects/:projectId/members/user-search,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/members.ts:246
+/starbase-api,POST,/starbase-api/projects/:projectId/pending-invites/:invitationId/reissue,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/members.ts:503
+/starbase-api,POST,/starbase-api/projects/:projectId/transfer-ownership,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/members.ts:852
+/starbase-api,POST,/starbase-api/projects/import-preview,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/starbase/routes/projects.ts:460
+/vcs-api,POST,/vcs-api/projects/:projectId/commit,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/versioning/index.ts:92
+/vcs-api,GET,/vcs-api/projects/:projectId/commits,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/versioning/index.ts:211
+/vcs-api,GET,/vcs-api/projects/:projectId/commits/:commitId/files,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/versioning/index.ts:563
+/vcs-api,POST,/vcs-api/projects/:projectId/commits/:commitId/restore,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/versioning/index.ts:585
+/vcs-api,POST,/vcs-api/projects/:projectId/publish,,Session,Yes,`/t/:tenantSlug` prefix,,backend-host/src/modules/versioning/index.ts:179
+/vcs-api,GET,/vcs-api/projects/:projectId/uncommitted-files,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/versioning/index.ts:520
+/vcs-api,GET,/vcs-api/projects/uncommitted-status,,Session,No,`/t/:tenantSlug` prefix,,backend-host/src/modules/versioning/index.ts:43
