@@ -19,6 +19,19 @@ Open **http://localhost:8080**. Stop with `docker compose -f docker-compose.self
 
 See `infra/docker/env/examples/selfhost.env.example` for all available options.
 
+### Self-host with Oracle
+
+The Oracle variant pulls the Oracle backend image (bundles Oracle Instant Client) and starts a local Oracle XE database. The Oracle backend image publishes stable release tags only, so `IMAGE_TAG` is pinned to a release (default `v0.32.0`).
+
+```bash
+curl -O https://raw.githubusercontent.com/EnterpriseGlue/enterpriseglue-the-bridge-oss/main/infra/docker/compose/docker-compose.selfhost-oracle.yml
+curl -o .env https://raw.githubusercontent.com/EnterpriseGlue/enterpriseglue-the-bridge-oss/main/infra/docker/env/examples/selfhost-oracle.env.example
+# Edit .env — set JWT_SECRET, ADMIN_PASSWORD, ENCRYPTION_KEY, ORACLE_PASSWORD
+docker compose -f docker-compose.selfhost-oracle.yml up -d
+```
+
+The first Oracle start initializes the database and can take a few minutes. To use an existing Oracle database, set `ORACLE_CONNECTION_STRING` (or `ORACLE_HOST`, `ORACLE_PORT`, `ORACLE_SERVICE_NAME`) in `.env` and run `docker compose -f docker-compose.selfhost-oracle.yml up -d --no-deps backend frontend`.
+
 ---
 
 ## Prerequisites

@@ -12,13 +12,15 @@ test('development and production Docker stacks gate dependents on bootstrap read
   const development = read('infra/docker/compose/docker-compose.yml');
   const production = read('infra/docker/compose/docker-compose.prod.yml');
   const selfhost = read('infra/docker/compose/docker-compose.selfhost.yml');
+  const selfhostOracle = read('infra/docker/compose/docker-compose.selfhost-oracle.yml');
 
-  for (const [name, compose] of [['development', development], ['production', production], ['self-hosted published image', selfhost]]) {
+  for (const [name, compose] of [['development', development], ['production', production], ['self-hosted published image', selfhost], ['self-hosted Oracle published image', selfhostOracle]]) {
     assert.match(compose, readinessProbe, `${name} backend healthcheck must call /ready`);
   }
   assert.match(development, /frontend:\s+[\s\S]*?depends_on:\s+backend:\s+condition: service_healthy/, 'development frontend must wait for readiness');
   assert.match(production, /frontend:\s+[\s\S]*?depends_on:\s+backend:\s+condition: service_healthy/, 'production frontend must wait for readiness');
   assert.match(selfhost, /frontend:\s+[\s\S]*?depends_on:\s+backend:\s+condition: service_healthy/, 'published-image frontend must wait for readiness');
+  assert.match(selfhostOracle, /frontend:\s+[\s\S]*?depends_on:\s+backend:\s+condition: service_healthy/, 'Oracle published-image frontend must wait for readiness');
 });
 
 test('Docker images expose a non-root config and separate secret mount target', () => {

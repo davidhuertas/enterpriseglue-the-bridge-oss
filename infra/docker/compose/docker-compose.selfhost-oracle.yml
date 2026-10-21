@@ -1,0 +1,92 @@
+# EnterpriseGlue Self-Host Compose (Oracle)
+#
+# Standalone compose file for self-hosters who do NOT need to clone the full repo.
+# Pulls the published Oracle backend image (bundles Oracle Instant Client) and the
+# standard frontend image, and wires them with a local Oracle XE database.
+#
+# The Oracle backend repository publishes only stable release tags (no 'latest'),
+# so IMAGE_TAG must name a release, e.g. v0.32.0.
+#
+# Quick start:
+#   1. curl -O https://raw.githubusercontent.com/EnterpriseGlue/enterpriseglue-the-bridge-oss/main/infra/docker/compose/docker-compose.selfhost-oracle.yml
+#   2. curl -o .env https://raw.githubusercontent.com/EnterpriseGlue/enterpriseglue-the-bridge-oss/main/infra/docker/env/examples/selfhost-oracle.env.example
+#   3. Edit .env — set JWT_SECRET, ADMIN_PASSWORD, ENCRYPTION_KEY, ORACLE_PASSWORD
+#   4. docker compose -f docker-compose.selfhost-oracle.yml up -d
+#
+# External Oracle database: point ORACLE_CONNECTION_STRING (or ORACLE_HOST/PORT/
+# SERVICE_NAME) at it and start only the application services:
+#   docker compose -f docker-compose.selfhost-oracle.yml up -d --no-deps backend frontend
+#
+# Optional configuration bootstrap:
+#   Download docker-compose.config-bundle.yml beside this file, configure the
+#   disabled-by-default EG_CONFIG_* values in .env, then start with both files:
+#   EG_CONFIG_BUNDLE_HOST_PATH=./enterpriseglue-config.json docker compose \
+#     -f docker-compose.selfhost-oracle.yml -f docker-compose.config-bundle.yml up -d
+#
+# Open the app at http://localhost:8080 (first Oracle start can take a few minutes)
+
+services:
+  db:
+    image: ${ORACLE_DB_IMAGE:-gvenzl/oracle-xe:21-slim-faststart}
+    restart: unless-stopped
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_ADMIN_PASSWORD:-${ORACLE_PASSWORD:-change_me}}
+      APP_USER: ${ORACLE_USER:-enterpriseglue}
+      APP_USER_PASSWORD: ${ORACLE_PASSWORD:-change_me}
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD-SHELL", "echo \"SET HEADING OFF FEEDBACK OFF PAGESIZE 0 VERIFY OFF ECHO OFF\nSELECT 'EG_HEALTH_OK' FROM dual;\nEXIT\" | sqlplus -s \"${ORACLE_USER:-enterpriseglue}/${ORACLE_PASSWORD:-change_me}@//127.0.0.1:1521/${ORACLE_SERVICE_NAME:-XEPDB1}\" | grep -q 'EG_HEALTH_OK'"]
+      interval: 10s
+      timeout: 10s
+      retries: 60
+      start_period: 30s
+    networks:
+      - enterpriseglue-network
+
+  backend:
+    image: ${EG_BACKEND_IMAGE_REF:-${BACKEND_IMAGE:-ghcr.io/enterpriseglue/enterpriseglue-the-bridge-oss-backend-oracle}:${IMAGE_TAG:-v0.32.0}}
+    restart: unless-stopped
+    init: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - ${EG_BACKEND_ENV_FILE:-.env}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - git_repos:/app/data/repos
+    expose:
+      - "${API_PORT:-8787}"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"const p=process.env.API_PORT||'8787';require('http').get('http://127.0.0.1:'+p+'/ready',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1));\""]
+      interval: 10s
+      timeout: 3s
+      retries: 30
+      start_period: 120s
+    networks:
+      - enterpriseglue-network
+
+  frontend:
+    image: ${EG_FRONTEND_IMAGE_REF:-${FRONTEND_IMAGE:-ghcr.io/enterpriseglue/enterpriseglue-the-bridge-oss-frontend}:${IMAGE_TAG:-v0.32.0}}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      API_UPSTREAM: ${API_UPSTREAM:-backend:${API_PORT:-8787}}
+      EG_FRONTEND_RUNTIME_API_BASE_URL: ${EG_FRONTEND_RUNTIME_API_BASE_URL:-}
+      EG_FRONTEND_RUNTIME_CONFIG_REQUIRED: ${EG_FRONTEND_RUNTIME_CONFIG_REQUIRED:-false}
+    ports:
+      - "${FRONTEND_HOST_PORT:-8080}:8080"
+    networks:
+      - enterpriseglue-network
+
+volumes:
+  oracle_data:
+  git_repos:
+
+networks:
+  enterpriseglue-network:
+    driver: bridge

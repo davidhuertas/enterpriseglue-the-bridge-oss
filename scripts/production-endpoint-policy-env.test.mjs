@@ -38,7 +38,7 @@ function assertEnvAssignment(contents, key) {
 }
 
 test('production Docker environment examples expose fail-closed engine and identity endpoint controls', () => {
-  for (const path of ['../infra/docker/env/examples/production.env.example', '../infra/docker/env/examples/selfhost.env.example']) {
+  for (const path of ['../infra/docker/env/examples/production.env.example', '../infra/docker/env/examples/selfhost.env.example', '../infra/docker/env/examples/selfhost-oracle.env.example']) {
     const contents = source(path);
     assert.match(contents, /^NODE_ENV=production$/m);
     [...requiredEnginePolicyKeys, ...requiredAdminIntegrationPolicyKeys, ...requiredIdentityPolicyKeys]

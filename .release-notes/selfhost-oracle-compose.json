@@ -1,0 +1,46 @@
+{
+  "$schema": "./schema.json",
+  "schemaVersion": 1,
+  "id": "selfhost-oracle-compose",
+  "type": "feat",
+  "scope": "self-host-deployment",
+  "breaking": false,
+  "audiences": ["operators"],
+  "summary": "Adds a standalone self-host Docker Compose file and environment example that run the published Oracle backend image with a local Oracle XE database.",
+  "userImpact": [
+    "Self-hosters can download docker-compose.selfhost-oracle.yml and selfhost-oracle.env.example and start EnterpriseGlue on Oracle without cloning the repository."
+  ],
+  "upgrade": {
+    "required": false,
+    "instructions": []
+  },
+  "configuration": [
+    "IMAGE_TAG defaults to the v0.32.0 release because the Oracle backend repository publishes stable release tags only.",
+    "ORACLE_DB_IMAGE selects the local Oracle XE container; ORACLE_ADMIN_PASSWORD optionally separates the SYS password from ORACLE_PASSWORD."
+  ],
+  "api": {
+    "compatibility": "none",
+    "changes": []
+  },
+  "database": {
+    "migrations": [],
+    "rollbackSupported": true,
+    "notes": ["This change does not alter database schemas or data."]
+  },
+  "security": [
+    "The database and backend stay on the project-scoped network without published host ports; only the frontend port is published."
+  ],
+  "documentation": [
+    "The Docker getting-started guide and Compose layout README describe the Oracle self-host path."
+  ],
+  "knownLimitations": [
+    "The Oracle backend image is published to GHCR only; the frontend Docker Hub alternative remains available."
+  ],
+  "rollback": [
+    "Remove the Oracle self-host Compose file; existing deployments are unaffected."
+  ],
+  "validation": [
+    "CI renders the standalone Oracle self-host Compose file from a temporary directory and asserts project-scoped networking."
+  ],
+  "packages": []
+}
