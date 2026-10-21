@@ -69,6 +69,7 @@ Audience: Developers and architects.
 - [Mirrored Engine Backstop Developer Guide](developer/mirrored-engine-backstop.md)
 - [Enterprise Backend Plugin Database API](reference/enterprise-backend-plugin-database-api.md)
 - [Frontend to Backend Endpoint Inventory](reference/frontend-backend-endpoints.md)
+- [Mandatory Request Headers per Backend Endpoint](reference/backend-request-headers.md)
 - [Customer Sidecar Backstop Test Report](development/customer-sidecar-backstop-test-report.md)
 - [Identity Protocol, Entra Compatibility, and LDAP Test Harness](how-to/ldap-protocol-test-harness.md)
 - [Extending SCIM Provisioning](development/extending-scim-provisioning.md)
